@@ -1,0 +1,65 @@
+<!-- Cesium起步教程 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Draw circles and ellipes</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer('cesiumer'); // 初始化三维视图
+    // 构造绿圆
+    var greenCircle = viewer.entities.add({
+        name: "Green circle at height with ourline", // 名称
+        position: Cesium.Cartesian3.fromDegrees(-111.0,40.0,150000.0), // 位置（经度，纬度，海拔高度（单位：米））
+        ellipse: { // 构造椭圆
+            semiMinorAxis: 300000.0, // 短半径（单位：米）
+            semiMajorAxis: 300000.0, // 长半径（单位：米）
+            height: 200000.0, // 高度（单位：米）
+            material: Cesium.Color.GREEN, // 材质，颜色
+            outline: true // 显示外边框，默认为黑色
+        }
+    })
+    // 构造无高度的红椭圆
+    var redEllipse = viewer.entities.add({
+        name : 'Red ellipse on surface', // 名称
+        position: Cesium.Cartesian3.fromDegrees(-103.0, 40.0), // 位置（经度，纬度，海拔（高度：米））
+        ellipse : { // 椭圆
+            semiMinorAxis : 250000.0, // 短半径 （单位：米） 
+            semiMajorAxis : 400000.0, // 长半径（单位：米）
+            material : Cesium.Color.RED.withAlpha(0.5) // 材质，颜色
+        }
+    })
+    // 经过旋转,带有边框，半透明的的蓝色椭圆柱
+    var blueEllipse = viewer.entities.add({
+        name: "Blue translucent, rotated and extruded ellipse with outline", // 名称
+        position: Cesium.Cartesian3.fromDegrees(-95.0, 40.0, 100000.0), // 位置（经度，纬度，海拔（单位：米））
+        ellipse: { // 椭圆
+            semiMinorAxis: 150000.0, // 短半径（单位：米）
+            semiMajorAxis: 300000.0, // 长半径(单位：米)
+            extrudedHeight: 200000.0, // 超出实体海拔的高度，即实体的高度
+            rotation: Cesium.Math.toRadians(90), //旋转角度，转换成弧度
+            material: Cesium.Color.BLUE.withAlpha(0.5), // 材质，颜色
+            outline: true // 显示外边框
+        }
+    })
+    viewer.zoomTo(viewer.entities); // 视图适应到视图的实体
+
+</script>
+</html>

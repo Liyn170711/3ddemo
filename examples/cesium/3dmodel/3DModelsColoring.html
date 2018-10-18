@@ -1,0 +1,365 @@
+<!-- 
+    3D模型附加颜色示例
+    Entity中添加model,注：模型文件的地址属性表是uri
+    1. 飞机模型
+    2. 汽车模型
+    3. 热气球模型
+    4. 牛奶卡车模型
+    5. cesium贴图牛奶卡车模型
+    Cesium.ColorBlendMode 着色模式
+    Cesium.ColorBlendMode.HIGHLIGHT 高光
+    Cesium.ColorBlendMode.REPLACE 替换
+    Cesium.ColorBlendMode.MIX 混合
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>3D Models Coloring</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="../../sm/css/bootstrap.min.css" rel="stylesheet">
+     <link href="../../sm/css/pretty.css" rel="stylesheet">
+     <script src="../../sm/js/jquery.min.js"></script>
+     <script src="../../sm/js/bootstrap.min.js"></script>
+     <script src="../../sm/js/bootstrap-select.min.js"></script>
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         .infoPanel {
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        #toolbar {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 400px;
+            height: auto;
+            color: #fff;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border-radius: 4px;
+        }
+        #toolbar input {
+            vertical-align: middle;
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+        #toolbar .header {
+            width: 100%;
+            font-weight: bold;
+            height: 25px;
+            color: coral;
+        }
+
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+     <div id="toolbar">
+        <span class="header">Model Silhouette</span>
+        <table class="infoPanel">
+            <tbody>
+                <tr>
+                    <td>Mode</td>
+                    <td>
+                        <select onchange="modeSelectionChange(this)">
+                            <option value="Highlight" selected>Highlight</option>
+                            <option value="Replace">Replace</option>
+                            <option value="Mix">Mix</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Color</td>
+                    <td>
+                        <select onchange="colorSelectionChange(this)">
+                            <option value="White">White</option>
+                            <option value="Red" selected>Red</option>
+                            <option value="Green">Green</option>
+                            <option value="Blue">Blue</option>
+                            <option value="White">Yellow</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Alpha</td>
+                    <td>
+                        <input id="alpha_range" type="range" min="0.0" max="1.0" step="0.01" value="1.0" onchange="alphaChange(this, alpha_input)">
+                        <input id="alpha_input" value="1.0" onchange="alphaChange(this, alpha_range)">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Mix</td>
+                    <td>
+                        <input id="mix_amount_range" type="range" min="0.0" max="1.0" step="0.01" value="0.5" disabled onchange="mixAmountChange(this, mix_amount_input)">
+                        <input id="mix_amount_input" type="text" value="0.5" disabled onchange="mixAmountChange(this, mix_amount_range)">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <span class="header">Model Silhouette</span>
+        <table class="infoPanel">
+            <tbody>
+                <tr>
+                    <td>Color</td>
+                    <td>
+                        <select onchange="sleColorSelectionChange(this)">
+                            <option value="Red" selected>Red</option>
+                            <option value="Green">Green</option>
+                            <option value="Blue">Blue</option>
+                            <option value="White">Yellow</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Alpha</td>
+                    <td>
+                        <input id="sle_alpha_range" type="range" min="0.0" max="1.0" step="0.01" value="1.0" onchange="sleAlphaChange(this, sle_alpha_input)">
+                        <input id="sle_alpha_input" type="text" value="1.0" onchange="sleAlphaChange(this, sle_alpha_range)">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Size</td>
+                    <td>
+                        <input id="sle_size_range" type="range" min="0.0" max="10.0" step="0.01" value="2.0" onchange="sleSizeChange(this, sle_size_input)">
+                        <input id="sle_size_input" type="text" value="2.0" onchange="sleSizeChange(this, sle_size_range)">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 20px;">
+            <select id="modelSelect" title="选择3D模型" class="selectpicker show-tick form-control">
+                <option url="../../../SampleData/models/CesiumAir/Cesium_Air.glb" height="5000" selected>Aircraft</option>
+                <option url="../../../SampleData/models/GroundVehicle/GroundVehicle.glb" height="0">Ground Vehicle</option>
+                <option url="../../../SampleData/models/CesiumBalloon/CesiumBalloon.glb" height="1000">Hot Air Balloon</option>
+                <option url="../../../SampleData/models/CesiumMilkTruck/CesiumMilkTruck-kmc.glb" height="0">Milk Truck</option>
+                <option url="../../../SampleData/models/CesiumMan/Cesium_Man.glb" height="0">Skinned Character</option>
+                <option url="../../../SampleData/models/DracoCompressed/CesiumMilkTruck.gltf" height="0">Draco Compressed Model</option>
+            </select>
+            <input type="checkbox" name="Shadows" style="margin-left: 20px;">  <span>Shadows</span>
+        </div>
+    </div>
+ </body>
+ <script>
+    var viewer = null; // 三维视图
+    var entity = null; // 模型实体
+    // 控制模型视图状态的变量
+    var viewModel = {
+        color : 'Red', // 颜色
+        alpha : 1.0, // 颜色透明度
+        colorBlendMode : 'Highlight', // 颜色着色模式
+        colorBlendAmount : 0.5, // 颜色着色量
+        silhouetteColor : 'Red', // 轮廓颜色
+        silhouetteAlpha : 1.0, // 轮廓颜色不透明度
+        silhouetteSize : 2.0 // 轮廓大小
+    };
+
+
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+        //  初始化三维视图
+        viewer = new Cesium.Viewer("cesiumer",{
+            infoBox: false, // 信息框
+            selectionIndicator: false, // 选择指示器
+            shadows: true, // 阴影
+            shouldAnimate: true // 动画效果
+        }); // 视图
+        var camera = viewer.camera; // 相机
+        var modelSelect = document.getElementById("modelSelect"); // 相机操作的下拉列比
+        var selected = modelSelect.selectedOptions[0];
+        var url = selected.getAttribute("url");  // 操作选项的模型地址
+        var height = parseFloat(selected.getAttribute("height"));  // 操作选项的高度
+        createModel(url,height); // 创建模型
+        regListeners(); // 注册事件监听
+        $("#loadingbar").remove();
+     }
+     
+     /**
+     * 创建模型
+     * @param url 模型的地址
+     * @param height 模型设置位置高度
+     */
+    function createModel (url,height) {
+        viewer.entities.removeAll(); // 视图中清空所有实体
+        var position = Cesium.Cartesian3.fromDegrees(-123.0744619, 44.0503706, height); // 构造位置世界坐标
+        var heading = Cesium.Math.toRadians(135); // 朝向角度
+        var pitch = 0; // 俯仰角度
+        var roll = 0; // 滚动角度
+        var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll); // 构造朝向、俯仰、滚动角度数据
+        var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr); // 构造视角数据
+        // 添加模型实体
+        entity = viewer.entities.add({ // 向视图中添加实体
+            name : url, // 名称
+            position : position, // 位置
+            orientation : orientation, // 朝向
+            model : { // 模型
+                uri : url, // 地址
+                minimumPixelSize : 128, // 最小像素大小
+                maximumScale : 20000, // 最大缩放比例
+                color: getColor(viewModel.color, viewModel.alpha), // 模型渲染色
+                colorBlendMode: getColorBlendMode(viewModel.colorBlendMode), // 模型颜色渲染的方式
+                colorBlendAmount: parseFloat(viewModel.colorBlendAmount), // 模型颜色渲染的方式mix（混合）时，渲染颜色数量（0-1.0）
+                silhouetteColor: getColor(viewModel.silhouetteColor, viewModel.silhouetteAlpha), // 模型轮廓的颜色
+                silhouetteSize: parseFloat(viewModel.silhouetteSize)// 模型轮廓的大小（单位：像素）
+            }
+        });
+        viewer.trackedEntity = entity; // 设置实体为相机当前追踪的实体
+    }
+
+    /**
+    * 注册事件监听
+    */
+    function regListeners () {
+        $("#modelSelect").change(modelSelectionChange); // 监听模型改变
+    }
+
+    /**
+    * 模型改变处理逻辑
+    */
+    function modelSelectionChange (event) {
+        var option = event.target.selectedOptions[0];
+        var optionURL = option.getAttribute("url");  // 操作选项的模型地址
+        var optionHeight = parseFloat(option.getAttribute("height"));  // 操作选项的高度
+        console.log("optionURL: ", optionURL); 
+        console.log("optionHeight: ", optionHeight); 
+        createModel(optionURL, optionHeight); // 创建模型
+    }
+
+    /**
+    * 获取颜色
+    */
+    function getColor (colorName, alpha) {
+        var color = Cesium.Color[colorName.toUpperCase()];
+        return Cesium.Color.fromAlpha(color, parseFloat(alpha));
+    }
+
+    /**
+    * 获取着色方式
+    */
+    function getColorBlendMode (colorBlendMode) {
+        return Cesium.ColorBlendMode[colorBlendMode.toUpperCase()];
+    }
+
+    /**
+    * 着色方式选项改变处理
+    */
+    function modeSelectionChange (target) {
+        var option = target.selectedOptions[0];
+        var mode = option.getAttribute("value");
+        console.log("选择的着色方式：", mode);
+        var colorBlendMode = getColorBlendMode(mode);
+        entity.model.colorBlendMode = colorBlendMode;
+        if (colorBlendMode === Cesium.ColorBlendMode.MIX){
+            $("#mix_amount_range").attr("disabled",false);
+            $("#mix_amount_input").attr("disabled",false);
+        }else {
+            $("#mix_amount_range").attr("disabled",true);
+            $("#mix_amount_input").attr("disabled",true);
+        }
+    } 
+
+    /**
+    * 颜色选项改变处理
+    */
+    function colorSelectionChange (target) {
+        var option = target.selectedOptions[0];
+        var color = option.getAttribute("value");
+        console.log("选择的着色颜色：", color);
+        viewModel.color = color;
+        entity.model.color = getColor(viewModel.color, viewModel.alpha);
+    } 
+
+    /**
+    * 轮廓颜色选项改变处理
+    */
+    function sleColorSelectionChange (target) {
+        var option = target.selectedOptions[0];
+        var color = option.getAttribute("value");
+        console.log("选择的轮廓颜色：", color);
+        viewModel.silhouetteColor = color;
+        entity.model.silhouetteColor = getColor(viewModel.silhouetteColor, viewModel.silhouetteAlpha);
+    } 
+
+    /**
+    * 着色不透明度改变处理
+    */
+    function alphaChange (target, input) {
+        var alpha = parseFloat(target.value);
+        console.log("着色不透明度：", alpha);
+        viewModel.alpha = alpha;
+        entity.model.color = getColor(viewModel.color, viewModel.alpha);
+        input.value = alpha;
+    } 
+
+    /**
+    * 混合模式的数量改变处理
+    */
+    function mixAmountChange (target, input) {
+        var amount = parseFloat(target.value);
+        console.log("mix模式的着色总计：", amount);
+        viewModel.colorBlendAmount = amount;
+        entity.model.colorBlendAmount = viewModel.colorBlendAmount;
+        input.value = amount;
+    } 
+
+    /**
+    * 轮廓颜色不透明度改变处理
+    */
+    function sleAlphaChange (target, input) {
+        var alpha = parseFloat(target.value);
+        console.log("轮廓颜色不透明度：", alpha);
+        viewModel.silhouetteAlpha = alpha;
+        entity.model.silhouetteColor = getColor(viewModel.silhouetteColor, viewModel.silhouetteAlpha);
+        input.value = alpha;
+    } 
+
+    /**
+    * 轮廓线宽大小改变处理
+    */
+    function sleSizeChange (target, input) {
+        var size = parseFloat(target.value);
+        console.log("轮廓线宽大小：", size);
+        viewModel.silhouetteSize = size;
+        entity.model.silhouetteSize = viewModel.silhouetteSize;
+        input.value = size;
+    } 
+
+ </script>
+ </html> 

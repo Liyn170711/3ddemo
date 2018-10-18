@@ -1,0 +1,49 @@
+<!-- Cesium起步教程 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cesium DrawHelper Demo</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../../libs/Cesium/Widgets/widgets.css">
+    <link rel="stylesheet" href="./DrawHelper.css">
+    <script type="text/javascript" src="../../../libs/Cesium/Cesium.js"> </script>
+    <script type="text/javascript" src="./DrawHelper.js"> </script>
+    <script type="text/javascript" src="./drawdemo.js"> </script>
+
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #toolbar {
+            position: absolute;
+            top: 0px;
+            left: 0;
+            display: inline;
+            margin: 10px;
+            padding: 0px;
+            background: white;
+        }
+        #logging {
+            position: absolute;
+            bottom: 0px;
+            right: 0;
+            display: inline;
+            margin: 10px;
+            padding: 10px;
+            background: white;
+        }
+    </style>
+</head>
+<body onload="creationComplete()">
+    <div id="cesiumer"></div>
+    <div id="toolbar"></div>
+    <div id="logging"></div>
+</body>
+</html>

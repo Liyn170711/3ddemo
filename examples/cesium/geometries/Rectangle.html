@@ -1,0 +1,183 @@
+<!-- 绘制矩形数据
+    示例给定矩形对角线的坐标绘制矩形
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Rectangle</title>
+    <link rel="stylesheet" href="../../../libs/Cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/Cesium/Cesium.js"></script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer("cesiumer"); // 初始化三维视图
+    // 构造红色矩形
+    var redRectangle = viewer.entities.add({
+        name : 'Red translucent rectangle',
+        rectangle : {
+            coordinates : Cesium.Rectangle.fromDegrees(-110.0, 20.0, -80.0, 25.0),
+            material : Cesium.Color.RED.withAlpha(0.5)
+        }
+    });
+    // 构造红色矩形对角顶点1
+    var redRectanglePoint1 = viewer.entities.add({
+        name : 'Red Rectangle point1',
+        position : Cesium.Cartesian3.fromDegrees(-110.0, 20.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Red Rectangle point1',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+    // 构造红色矩形对角顶点2
+    var redRectanglePoint2 = viewer.entities.add({
+        name : 'Red Rectangle point2',
+        position : Cesium.Cartesian3.fromDegrees(-80.0, 25.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Red Rectangle point2',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+    // 构造绿色旋转带高度、边框的矩形
+    var greenRectangle = viewer.entities.add({
+        name : 'Green translucent, rotated, and extruded rectangle at height with outline',
+        rectangle : {
+            coordinates : Cesium.Rectangle.fromDegrees(-110.0, 30.0, -100.0, 40.0),
+            material : Cesium.Color.GREEN.withAlpha(0.5),
+            rotation : Cesium.Math.toRadians(45),
+            extrudedHeight : 300000.0,
+            height : 100000.0,
+            outline : true, // height must be set for outline to display
+            outlineColor : Cesium.Color.BLACK
+        }
+    });
+    // 绿色矩形对角顶点1
+    var greenRectanglePoint1 = viewer.entities.add({
+        name : 'Green Rectangle point1',
+        position : Cesium.Cartesian3.fromDegrees(-110.0, 30.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Green Rectangle point1',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+    // 绿色矩形对角顶点2
+    var greenRectanglePoint2 = viewer.entities.add({
+        name : 'Green Rectangle point2',
+        position : Cesium.Cartesian3.fromDegrees(-100.0, 40.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Green Rectangle point2',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+    // 构造旋转、图片材质的矩形
+    var rotation = Cesium.Math.toRadians(30); // 设置初始旋转角度，转换为弧度值
+    function getRotationValue() {
+        rotation += 0.005;
+        return rotation;
+    }
+    viewer.entities.add({
+        name: 'Rotating rectangle with rotating texture coordinate',
+        rectangle: {
+            coordinates: Cesium.Rectangle.fromDegrees(-92.0, 30.0, -76.0, 40.0),
+            material: '../images/Cesium_Logo_Color.jpg', // 材质为图片
+            rotation: new Cesium.CallbackProperty(getRotationValue, false), // 旋转角度，不是常量
+            stRotation: new Cesium.CallbackProperty(getRotationValue, false), // 旋转角度，不是常量
+            classificationType : Cesium.ClassificationType.TERRAIN 
+        }
+    });
+    // 旋转矩形对角顶点1
+    var rorateRectanglePoint1 = viewer.entities.add({
+        name : 'Rorate Rectangle point1',
+        position : Cesium.Cartesian3.fromDegrees(-92.0, 30.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Rorate Rectangle point1',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+    // 旋转矩形对角顶点2
+    var rorateRectanglePoint2 = viewer.entities.add({
+        name : 'Rorate Rectangle point2',
+        position : Cesium.Cartesian3.fromDegrees( -76.0, 40.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.RED,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Rorate Rectangle point2',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0, -9)
+        }
+    });
+
+    // 缩放到显示视图里的实体
+    viewer.zoomTo(viewer.entities);
+</script>
+</html>

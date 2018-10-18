@@ -1,0 +1,354 @@
+<!-- 
+    三维视图相机的控制
+    1. camera.flyTo()
+    2. camera.setView()
+    3. camera.lookAt()
+    4. camera.lookAtTransform()
+    5. 监听相机事件,如：moveStart: 移动开始, moveEnd: 移动结束, changed:  百分比变化
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Camera Demo</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="../../sm/css/bootstrap.min.css" rel="stylesheet">
+     <link href="../../sm/css/pretty.css" rel="stylesheet">
+     <script src="../../sm/js/jquery.min.js"></script>
+     <script src="../../sm/js/bootstrap.min.js"></script>
+     <script src="../../sm/js/bootstrap-select.min.js"></script>
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         #cameraMove, #cameraChanged {
+            display: none;
+            background-color: red;
+            color: white;
+            height: 30px;
+        }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+     <div style="position: absolute;left: 5px;top: 5px;">
+        <div id="cameraMove">View Changed</div>
+        <div id="cameraChanged">Camera Changed</div>
+    </div>
+     <div style="position: absolute;left: 5px;top: 45px;">
+        <select id="cameraOptions" title="选择Camera的操作" class="selectpicker show-tick form-control">
+            <option value="flyInACity">Fly in a city</option>
+            <option value="flyToSanDiego">Fly to San Diego</option>
+            <option value="flyToLocationHeadingPitchRoll">Fly to location with heading,pitch and roll</option>
+            <option value="flyToMyLocation">Fly to my location</option>
+            <option value="flyToRectangle">Fly to rectangle</option>
+            <option value="viewRectangle">View a rectangle</option>
+            <option value="setCameraFrame">Set camera reference frame</option>
+            <option value="setCameraHeadingPitchRoll">Set camera with heading,pitch and roll</option>
+            <option value="viewInICRF">View in ICRF</option>
+            <option value="moveEvents">Move events</option>
+            <option value="cameraChangedEvent">Camera changed event</option>
+            <option value="flyFromTo">Fly from Los Angeles to Tokyo via Europe</option>
+            <option value="lookDown">Look down during exaggerated flight</option>
+        </select>
+    </div>
+ </body>
+ <script>
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+        //  初始化viewer
+        var viewer = new Cesium.Viewer("cesiumer"); // 视图
+        var camera = viewer.camera; // 相机
+        var cameraOptions = document.getElementById("cameraOptions"); // 相机操作的下拉列比
+        cameraOptions.onchange = function (event) { // 相机操作改变处理函数
+            var optionValue = event.target.value;  // 操作选项的值
+            console.log("optionValue:",optionValue); 
+            window[optionValue](viewer,camera); // 执行操作方法
+        }
+        $("#loadingbar").remove();
+     }
+     
+    /**
+     * Fly in a city
+     */
+     function flyInACity (viewer, camera) {
+         var destination1 = Cesium.Cartesian3.fromDegrees(-73.98580932617188, 40.74843406689482, 363.34038727246224);
+         var destination2 = Cesium.Cartesian3.fromDegrees(-73.98585975679403, 40.75759944127251, 186.50838555841779);
+         camera.flyTo({
+             destination: destination1, // 终点
+             complete: function () { // 飞行完成回调函数
+                 setTimeout(function () { 
+                     camera.flyTo({ 
+                        destination: destination2,
+                        orientation: { // 朝向位置
+                            heading: Cesium.Math.toRadians(200.0), // 航向角，绕z轴负向旋转角度
+                            pitch: Cesium.Math.toRadians(-50.0) // 俯仰角，绕y轴负向旋转角度
+                        },
+                        easingFunction: Cesium.EasingFunction.LINEAR_NOME // 延迟回调函数
+                     });
+                 }, 1000);
+             }
+         });
+     }
+
+     /**
+     * Fly to San Diego
+     */
+     function flyToSanDiego (viewer, camera) {
+         var destination = Cesium.Cartesian3.fromDegrees(-117.16, 32.71, 15000.0);
+         camera.flyTo({destination: destination});
+     }
+
+     /**
+     * Fly to location with heading,pitch and roll
+     */
+     function flyToLocationHeadingPitchRoll (viewer, camera) {
+         var position = Cesium.Cartesian3.fromDegrees(-122.22, 46.12, 5000.0);
+         var orientation = Cesium.HeadingPitchRoll.fromDegrees(20.0,-30.0,0.0); // 构造朝向，读取角度值
+         camera.flyTo({
+             destination: position, // 终点
+             orientation: { // 朝向
+                //  heading: orientation.heading, // 朝向角，沿z轴负向旋转角度（单位：弧度）
+                //  pitch: orientation.pitch, // 俯仰角，沿y轴负向旋转角度（单位：弧度）
+                //  roll: orientation.roll // 滚动角，沿x轴正向旋转角度（单位：弧度）
+                 heading: Cesium.Math.toRadians(20.0),
+                 pitch: Cesium.Math.toRadians(-30.0),
+                 roll: Cesium.Math.toRadians(0.0)
+             }
+         });
+     }
+
+     /**
+     * Fly to my location
+     * 通过html5的navigator.geolocation api 获取用户当前位置失败，此功能暂未实现
+     */
+     function flyToMyLocation (viewer, camera) {
+         if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                alert("成功获取当前位置信息！");
+                console.log("当前位置信息：",position);
+                var position = Cesium.Cartesian3.fromDegrees(position.coords.latitude, position.coords.longitude, position.coords.altitude);
+                camera.flyTo({destination: position});
+            }, error => {
+                var errMsg;
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errMsg = "用户拒绝获取地理位置的请求！";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errMsg = "位置信息是不可用的！";
+                        break;
+                    case error.TIMEOUT:
+                        errMsg = "请求地理位置超时！";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        errMsg = "位置错误！";
+                        break;
+                }
+                alert(errMsg);
+            });
+         }else {
+             alert("您的浏览器不支持HTML5实时定位的api！");
+         }
+     }
+
+    /**
+     * Fly to rectangle
+     */
+     function flyToRectangle (viewer, camera) {
+         var rectangle = Cesium.Rectangle.fromDegrees(-90.0, 38.0, -87.0, 40.0);
+         camera.flyTo({destination: rectangle});
+         viewer.entities.add({
+             rectangle: {
+                 coordinates: rectangle,
+                 material : Cesium.Color.RED.withAlpha(0.25),
+                 outline: true,
+                 outlineColor: Cesium.Color.WHITE
+             }
+         });
+     }
+
+     /**
+     * View a rectangle
+     */
+     function viewRectangle (viewer, camera) {
+         var rectangle = Cesium.Rectangle.fromDegrees(-77.0, 38.0, -72.0, 42.0);
+         camera.setView({destination: rectangle});
+         viewer.entities.add({
+             rectangle: {
+                 coordinates: rectangle,
+                 material: Cesium.Color.YELLOW.withAlpha(0.25),
+                 outline: true,
+                 outlineColor: Cesium.Color.BLACK
+             }
+         })
+     }
+
+     /**
+     * Set camera reference frame
+     * 设置相机参考坐标系
+     */
+     function setCameraFrame (viewer, camera) {
+         var center = Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883); // 构造中心点
+         var transform = Cesium.Transforms.eastNorthUpToFixedFrame(center); // 构造位置坐标转换方法
+         // 设置视图在 earth-north-up frame中
+         camera.constrainedAxis = Cesium.Cartesian3.UNIT_Z; // 限制坐标轴
+         camera.lookAtTransform(transform, new Cesium.Cartesian3(-120000.0, -120000.0, 120000.0));
+         //显示参考坐标系
+         viewer.scene.primitives.add(new Cesium.DebugModelMatrixPrimitive({
+             modelMatrix: transform, // 位置转换
+             length: 100000.0 // 长度
+         }))
+
+     }
+
+     /**
+     * Set camera with heading,pitch and roll
+     */
+     function setCameraHeadingPitchRoll (viewer, camera) {
+         var position = Cesium.Cartesian3.fromDegrees(-75.5847, 40.0397, 1000.0); // 构造终点位置信息
+         var orientation = Cesium.HeadingPitchRoll.fromDegrees(-90.0, -45.0, 0.0); // 构造朝向数据，传入角度
+         camera.setView({ // 相机设置视图
+             destination: position,
+             orientation: { // 朝向位置
+                //  heading: orientation.heading,
+                //  pitch: orientation.pitch,
+                //  roll: orientation.roll
+                 heading: -Cesium.Math.PI_OVER_TWO, // 航向角（绕z轴负向的旋转角度（单位：弧度））
+                 pitch: -Cesium.Math.PI_OVER_FOUR, // 俯仰角（绕z轴负向的旋转角度（单位：弧度））
+                 roll: 0.0 // 滚动角（绕x轴正向的旋转角度（单位：弧度））
+             }
+         })
+     }
+
+     /**
+     * View in ICRF
+     * 天球参考架下的视图
+     */
+     function viewInICRF (viewer, camera) {
+         camera.flyHome(0); // 相机飞回初始视图视角
+         viewer.clock.multiplier = 3 * 60 *60; // 设置时钟的增长量
+         viewer.scene.globe.enableLighting = true; // 开启光照
+        //  监听视图场景更新事件
+         viewer.scene.postUpdate.addEventListener((scene,time) => { // 视图场景更新回调函数
+            if (scene.mode !== Cesium.SceneMode.SCENE3D) { // 判断当前视图场景模式是否是三维场景模式
+                return;
+            }
+            var icrfToFixed = Cesium.Transforms.computeIcrfToFixedMatrix(time); // 计算国际天球参考架的调整矩阵
+            if (Cesium.defined(icrfToFixed)) {
+                var offset = Cesium.Cartesian3.clone(camera.position); // 位置偏移量
+                var transform = Cesium.Matrix4.fromRotationTranslation(icrfToFixed); // 位置转换矩阵
+                camera.lookAtTransform(transform, offset); // 相机设置偏移转换
+            }
+         });
+     }
+
+    /**
+     * Camera Move events
+     * 相机移动事件
+     */
+     function moveEvents (viewer, camera) {
+         var cameraMove = document.getElementById("cameraMove");
+         camera.moveStart.addEventListener( () => {
+            cameraMove.style.display = "block";
+         });
+         camera.moveEnd.addEventListener( () => {
+            cameraMove.style.display = "none";
+         });
+     }
+
+     /**
+     * Camera changed event
+     * 相机改变事件
+     */
+     function cameraChangedEvent (viewer,camera) {
+         var cameraChanged = document.getElementById("cameraChanged");
+         var i = 0;
+         camera.changed.addEventListener((percentage) => {
+             i++;
+             cameraChanged.innerText = "Camera Changed: " + i + ", " + percentage.toFixed(6);
+             cameraChanged.style.display = "block";
+         })
+     }
+
+     /**
+     * Fly from Los Angeles to Tokyo via Europe
+     */
+     function flyFromTo (viewer, camera) {
+        losAngelesTokyo(camera);
+     }
+
+     /**
+     * Look down during exaggerated flight
+     */
+     function lookDown (viewer, camera) {
+        losAngelesTokyo(camera,true)
+     }
+
+    /**
+    * 相机从losAngeles调整到Tokyo
+    */
+     function losAngelesTokyo(camera, adjustPitch) {
+         var laOptions = { // 洛杉矶属性
+            destination : Cesium.Cartesian3.fromDegrees(-117.729, 34.457, 10000.0),
+            duration: 5,
+            orientation: {
+                heading : Cesium.Math.toRadians(-15.0),
+                pitch : -Cesium.Math.PI_OVER_FOUR,
+                roll : 0.0
+            },
+             complete: () => {
+                 setTimeout(()=>{
+                     camera.flyTo(tokyoOptions);
+                 },1000)
+             }
+         };
+         var tokyoOptions = { // 东京属性
+            destination : Cesium.Cartesian3.fromDegrees(139.8148, 35.7142, 20000.0),
+            orientation: {
+                heading : Cesium.Math.toRadians(15.0),
+                pitch : Cesium.Math.toRadians(-60),
+                roll : 0.0
+            },
+            duration: 20,
+            flyOverLongitude: Cesium.Math.toRadians(60.0)
+         };
+         if (adjustPitch) { // 判断是否要调整高度
+            laOptions.pitchAdjustHeight = 1000;
+            tokyoOptions.pitchAdjustHeight = 1000;
+         }
+         camera.flyTo(laOptions);
+     }
+ </script>
+ </html> 

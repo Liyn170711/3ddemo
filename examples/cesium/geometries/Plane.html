@@ -1,0 +1,122 @@
+<!-- 绘制平面数据
+    示例绘制三维坐标轴切面
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Plane</title>
+    <link rel="stylesheet" href="../../../libs/Cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/Cesium/Cesium.js"></script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer("cesiumer"); // 初始化三维视图
+    // 构造蓝色x轴切面
+    var bluePlane = viewer.entities.add({
+        name : 'Blue plane',
+        position: Cesium.Cartesian3.fromDegrees(-114.0, 40.0, 300000.0), // 平面中心坐标（经度，纬度，海拔）
+        plane : {
+            plane : new Cesium.Plane(Cesium.Cartesian3.UNIT_X, 0.0), 
+            dimensions : new Cesium.Cartesian2(400000.0, 300000.0), // 尺寸（长、宽（单位：米））
+            material : Cesium.Color.BLUE
+        }
+    });
+    // 构造蓝色x轴切面的位置中心点和label
+    var bluePlaneCenter = viewer.entities.add({
+        name : 'Blue plane center',
+        position : Cesium.Cartesian3.fromDegrees(-114.0, 40.0, 300000.0), 
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.ORANGE,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Blue plane center',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0,0) // 文本偏移位置
+        }
+    });
+    // 构造蓝色y轴切面
+    var redPlane = viewer.entities.add({
+        name : 'Red plane with black outline',
+        position: Cesium.Cartesian3.fromDegrees(-107.0, 40.0, 300000.0), // 平面中心坐标（经度，纬度，海拔）
+        plane : {
+            plane : new Cesium.Plane(Cesium.Cartesian3.UNIT_Y, 0.0),
+            dimensions : new Cesium.Cartesian2(400000.0, 300000.0), // 尺寸（长、宽（单位：米））
+            material : Cesium.Color.RED.withAlpha(0.5),
+            outline : true,
+            outlineColor : Cesium.Color.BLACK
+        }
+    });
+    // 构造蓝色y轴切面的位置中心点和label
+    var redPlaneCenter = viewer.entities.add({
+        name : 'Red plane center',
+        position : Cesium.Cartesian3.fromDegrees(-107.0, 40.0, 300000.0), // 尺寸（长、宽（单位：米））
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.ORANGE,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Red plane center',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0,0) // 文本偏移位置
+        }
+    });
+    // 构造蓝色z轴切面
+    var outlineOnly = viewer.entities.add({
+        name : 'Yellow plane outline',
+        position: Cesium.Cartesian3.fromDegrees(-100.0, 40.0, 300000.0), // 平面中心坐标（经度，纬度，海拔）
+        plane : {
+            plane : new Cesium.Plane(Cesium.Cartesian3.UNIT_Z, 0.0),
+            dimensions : new Cesium.Cartesian2(400000.0, 300000.0),
+            fill : false,
+            outline : true,
+            outlineColor : Cesium.Color.YELLOW
+        }
+    });
+    // 构造蓝色z轴切面的位置中心点和label
+    var yellowPlaneCenter = viewer.entities.add({
+        name : 'Yellow plane center',
+        position : Cesium.Cartesian3.fromDegrees(-100.0, 40.0, 300000.0),
+        point : {
+            pixelSize : 5,
+            color : Cesium.Color.ORANGE,
+            outlineColor : Cesium.Color.WHITE,
+            outlineWidth : 2
+        },
+        label : {
+            text : 'Yellow plane center',
+            font : '14pt monospace',
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth : 2,
+            verticalOrigin : Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset : new Cesium.Cartesian2(0,0) // 文本偏移位置
+        }
+    });
+    // 缩放到显示视图里的实体
+    viewer.zoomTo(viewer.entities);
+</script>
+</html>

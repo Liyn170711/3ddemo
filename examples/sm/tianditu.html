@@ -1,0 +1,95 @@
+<!-- 
+    创建三维场景
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>天地图影像</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="./css/bootstrap.min.css" rel="stylesheet">
+     <link href="./css/pretty.css" rel="stylesheet">
+     <script src="./js/jquery.min.js"></script>
+     <script src="./js/bootstrap.min.js"></script>
+     <script src="./js/bootstrap-select.min.js"></script>
+     <link rel="stylesheet" href="../../libs/sm/Cesium/Widgets/widgets.css">
+     <script type="text/javascript" src="../../libs/sm/Cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+     <div style="position: absolute;left: 5px;top: 5px;">
+        <select id="imageryOptions" title="选择服务类型" class="selectpicker show-tick form-control">
+            <option value="IMG_C">全球影像地图服务(经纬度)</option>
+            <option value="VEC_W">全球矢量地图服务(墨卡托)</option>
+            <option value="TER_W">全球地形晕渲服务(墨卡托)</option>
+            <option value="IMG_W">全球影像地图服务(墨卡托)</option>
+            <option value="VEC_C">全球矢量地图服务(经纬度)</option>
+            <option value="TER_C">全球地形晕渲服务(经纬度)</option>
+        </select>
+    </div>
+ </body>
+ <script>
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+        //  初始化viewer
+         var viewer = new Cesium.Viewer("cesiumer",{
+            //  提供天地图影像
+             imageryProvider: new Cesium.TiandituImageryProvider({
+                 credit: new Cesium.Credit("天地图全球影像服务 数据来源：国家地理信息公共服务平台 & 四川省测绘地理信息局") // 添加归属信息
+             })
+         });
+         var imageryLayers = viewer.imageryLayers; // 获取视图的图像图层集合
+        //  构造天地图全球中文标注服务，并添加至影像图层中
+        var tiandituLabelImagery = new Cesium.TiandituImageryProvider({
+            mapStyle: Cesium.TiandituMapsStyle.CIA_C //天地图全球中文标注服务（经纬度投影）
+        });
+        imageryLayers.addImageryProvider(tiandituLabelImagery);
+        $("#imageryOptions").change(function(){
+            var value = $(this).val(); // 获取当前选择的值
+            var baseLayer = imageryLayers.get(1); // 获取之前的选择的图层
+            // 添加新的天地图服务
+            imageryLayers.addImageryProvider(new Cesium.TiandituImageryProvider({
+                mapStyle: Cesium.TiandituMapsStyle[value]
+            }),1)
+            // 移除之前选择的图层
+            imageryLayers.remove(baseLayer);
+        });
+        $("#loadingbar").remove();
+     }
+ 
+ </script>
+ </html>

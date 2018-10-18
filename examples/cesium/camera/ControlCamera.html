@@ -1,0 +1,215 @@
+<!-- 
+    三维视图相机的控制
+    1. camera.flyTo()
+    2. camera.setView()
+    3. camera.lookAt()
+    4. camera.lookAtTransform()
+    5. 监听相机事件,如：moveStart: 移动开始, moveEnd: 移动结束, changed:  百分比变化
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Camera Demo</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         .oprationTips {
+             position: absolute;
+             left: 5px;
+             top: 5px;
+             width: 400px;
+             height: 150px;
+             border: 1px solid #ccc;
+             border-radius: 5px;
+             background: transparent;
+             color: #fff;
+             padding: 15px;
+         }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div class="oprationTips">
+        Click on the Cesium display to start. <br>
+        w/s - move forward/backward <br>
+        a/d - move left/right <br>
+        q/e - move up/down <br>
+        left mouse button down plus mouse move changes the look direction <br>
+     </div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+ </body>
+ <script>
+     var viewer = null; // 三维视图
+     var mousePosition;
+     var startMousePosition;
+     var flags = { // 移动标志对象
+         looking: false, // 焦点是否在地图上的标志
+         moveForward: false, // 向前移动的标志
+         moveBackward: false, // 向后移动的标志
+         moveUp: false, // 向上移动的标志
+         moveDown: false, // 向下移动的标志
+         moveLeft: false, // 向左移动的标志
+         moveRight: false // 向右移动的标志
+     };
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+        //  初始化viewer
+        viewer = new Cesium.Viewer("cesiumer"); // 视图
+        var camera = viewer.camera; // 相机
+        var scene = viewer.scene; // 视图场景
+        var canvas = viewer.canvas; // 视图的画布
+        var ellipsoid = scene.globe.ellipsoid; // 视图椭球体
+        // 将焦点放在画布上
+        canvas.setAttribute("tabIndex", "0");
+        canvas.onclick = () =>{
+            canvas.focus;
+        };
+        disableDefaultEventHandlers(scene); // 禁用camera默认的事件处理
+        regListeners(canvas); // 注册事件监听
+     }
+     
+     /**
+     * 禁用camera默认的事件处理
+     */
+     function disableDefaultEventHandlers (scene) {
+         scene.screenSpaceCameraController.enableRorate = false; // 禁用鼠标控制相机旋转
+         scene.screenSpaceCameraController.enableTranslate = false; // 禁用鼠标控制相机移动
+         scene.screenSpaceCameraController.enableZoom = false; // 禁用鼠标控制相机缩放
+         scene.screenSpaceCameraController.enableTilt = false; // 禁用鼠标控制相机倾斜
+         scene.screenSpaceCameraController.enableLook = false; // 禁用鼠标控制相机俯瞰
+     }
+     /**
+     * 注册事件监听
+     */ 
+     function regListeners (canvas) {
+        //  var eventHandler = viewer.screenSpaceEventHandler;
+        var eventHandler = new Cesium.ScreenSpaceEventHandler(canvas); // 构造屏幕事件处理
+        // 监听鼠标左键按下事件
+        eventHandler.setInputAction((movement) => { 
+            flags.looking = true;
+            mousePosition = startMousePosition = Cesium.Cartesian3.clone(movement.position);
+        },Cesium.ScreenSpaceEventType.LEFT_DOWN);
+        // 监听鼠标移动事件
+        eventHandler.setInputAction((movement) => { 
+            mousePosition = movement.endPosition;
+        },Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+        // 监听鼠标左键抬起事件
+        eventHandler.setInputAction((movement) => { 
+            flags.looking = false;
+        },Cesium.ScreenSpaceEventType.LEFT_UP);
+        // 监听键盘按下事件
+        document.addEventListener("keydown", (e) => {
+            console.log("监听到了键盘按下事件：", e);
+            var flagName = getFlagForKeyCode(e.keyCode);
+            if (typeof flagName != "undefined") {
+                flags[flagName] = true;
+            }
+        });
+        //  监听鼠标抬起事件
+        document.addEventListener("keyup", (e) => {
+            console.log("监听到了鼠标抬起事件：", e);
+            var flagName = getFlagForKeyCode(e.keyCode);
+            if (typeof flagName != "undefined") {
+                flags[flagName] = false;
+            }
+        });
+        // 监听Cesium帧变化，时间状态更新
+        viewer.clock.onTick.addEventListener(handleClockUpdate);
+     }
+     /**
+     * 根据键盘输入的内容获取标志
+     */
+     function getFlagForKeyCode (keyCode) {
+        switch (keyCode) {
+            case "W".charCodeAt(0):
+                return "moveForward";
+            case "S".charCodeAt(0):
+                return "moveBackward";
+            case "Q".charCodeAt(0):
+                return "moveUp";
+            case "E".charCodeAt(0):
+                return "moveDown";
+            case "A".charCodeAt(0):
+                return "moveRight";
+            case "D".charCodeAt(0):
+                return "moveLeft";
+            default:
+                return undefined;
+        }
+     }
+
+     /**
+     * 监听Cesium帧变化，时间状态更新
+     */
+     function handleClockUpdate (clock) {
+        var camera = viewer.camera;
+        var canvas = viewer.canvas;
+        var scene = viewer.scene; // 视图场景
+        var ellipsoid = scene.globe.ellipsoid; // 视图椭球体
+        if (flags.looking) {
+            var width = canvas.clientWidth;
+            var height = canvas.clientHeight;
+             // Coordinate (0.0, 0.0) will be where the mouse was clicked.
+            var x = (mousePosition.x - startMousePosition.x) / width;
+            var y = -(mousePosition.y - startMousePosition.y) / height;
+            var lookFactor = 0.05; // 视角改变银子
+            camera.lookRight(x * lookFactor);
+            camera.lookUp(y * lookFactor);
+        }
+        // Change movement speed based on the distance of the camera to the surface of the ellipsoid.
+        var cameraHeight = ellipsoid.cartesianToCartographic(camera.position).height;
+        var moveRate = cameraHeight / 100.0;
+        if (flags.moveForward) {
+            camera.moveForward(moveRate);
+        }
+        if (flags.moveBackward) {
+            camera.moveBackward(moveRate);
+        }
+        if (flags.moveUp) {
+            camera.moveUp(moveRate);
+        }
+        if (flags.moveDown) {
+            camera.moveDown(moveRate);
+        }
+        if (flags.moveLeft) {
+            camera.moveLeft(moveRate);
+        }
+        if (flags.moveRight) {
+            camera.moveRight(moveRate);
+        }
+     }
+ </script>
+ </html> 

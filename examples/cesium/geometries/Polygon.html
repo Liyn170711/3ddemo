@@ -1,0 +1,124 @@
+<!-- 绘制多边形 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ploygon</title>
+    <link rel="stylesheet" href="../../../libs/Cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/Cesium/Cesium.js"></script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer("cesiumer"); // 初始化三维视图
+    // 构造红色多边形
+    var redPolygon = viewer.entities.add({
+        name: "Red polygon on surface",
+        polygon: {
+            material: Cesium.Color.RED,
+            hierarchy: Cesium.Cartesian3.fromDegreesArray([-115.0, 37.0,
+                                                        -115.0, 32.0,
+                                                        -107.0, 33.0,
+                                                        -102.0, 31.0,
+                                                        -102.0, 35.0])
+        }
+    });
+    // 构造绿色带高度的多边形
+    var greenExtruedPolygon = viewer.entities.add({
+        name: "Green extrued polygon",
+        polygon: {
+            material: Cesium.Color.GREEN,
+            hierarchy: Cesium.Cartesian3.fromDegreesArray([-108.0, 42.0,
+                                                        -100.0, 42.0,
+                                                        -104.0, 40.0]),
+            extrudedHeight: 500000.0,
+            closeTop: false,
+            closeBottom: false
+        }
+    });
+    // 橙色每个位置有高度的几何体
+    var orangePolygon = viewer.entities.add({
+        name: "Orange polygon with per-position heights and outline",
+        polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([-108.0, 25.0, 100000,
+                                                               -100.0, 25.0, 100000,
+                                                               -100.0, 30.0, 100000,
+                                                               -108.0, 30.0, 300000
+            ]),
+            extrudedHeight: 0,
+            perPositionHeight: true, // 每个位置显示高度
+            material: Cesium.Color.ORANGE.withAlpha(0.5),
+            outline: true,
+            outlineColor: Cesium.Color.BLACK
+        }
+    });
+    // 有洞的多边形
+    var bluePolygon = viewer.entities.add({
+        name : 'Blue polygon with holes',
+        polygon : {
+            hierarchy : {
+                positions : Cesium.Cartesian3.fromDegreesArray([-99.0, 30.0,
+                                                                -85.0, 30.0,
+                                                                -85.0, 40.0,
+                                                                -99.0, 40.0]),
+                holes : [{
+                    positions : Cesium.Cartesian3.fromDegreesArray([
+                        -97.0, 31.0,
+                        -97.0, 39.0,
+                        -87.0, 39.0,
+                        -87.0, 31.0
+                    ]),
+                    holes : [{
+                        positions : Cesium.Cartesian3.fromDegreesArray([
+                            -95.0, 33.0,
+                            -89.0, 33.0,
+                            -89.0, 37.0,
+                            -95.0, 37.0
+                        ]),
+                        holes : [{
+                            positions : Cesium.Cartesian3.fromDegreesArray([
+                                -93.0, 34.0,
+                                -91.0, 34.0,
+                                -91.0, 36.0,
+                                -93.0, 36.0
+                            ])
+                        }]
+                    }]
+                }]
+            },
+            material : Cesium.Color.BLUE.withAlpha(0.5),
+            height : 0,
+            outline : true // height is required for outline to display
+        }
+    });
+    // 蓝绿色、每点附有高度的竖直平面图
+    var cyanPolygon = viewer.entities.add({
+        name : 'Cyan vertical polygon with per-position heights and outline',
+        polygon : {
+            hierarchy : Cesium.Cartesian3.fromDegreesArrayHeights([
+            -90.0, 41.0, 0.0,
+            -85.0, 41.0, 500000.0,
+            -80.0, 41.0, 0.0
+            ]),
+            perPositionHeight : true,
+            material : Cesium.Color.CYAN.withAlpha(0.5),
+            outline : true,
+            outlineColor : Cesium.Color.BLACK
+        }
+    });
+    // 缩放到显示视图里的实体
+    viewer.zoomTo(viewer.entities);
+</script>
+</html>

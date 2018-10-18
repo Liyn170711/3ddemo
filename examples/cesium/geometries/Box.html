@@ -1,0 +1,64 @@
+<!-- Cesium起步教程 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Draw Box</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer('cesiumer'); // 初始化三维视图
+    // 构造蓝色实心盒子
+    var blueBox = viewer.entities.add({
+        name: "Blue box", // 名称
+        position: Cesium.Cartesian3.fromDegrees(-114.0, 40.0, 300000.0), // 位置（经度，纬度，高度:（单位：米））
+        box: { // 盒子属性
+            dimensions: new Cesium.Cartesian3(400000.0, 300000.0, 500000.0), // 尺寸，设置3D笛卡尔几何体（x,y,z；（单位：米））
+            material: Cesium.Color.BLUE // 材质颜色，获取Cesium.Color的静态属性
+        }
+    })
+    // 构造黑边框填充半透明的盒子
+    var redBox = viewer.entities.add({
+        name: "Red box with black outline", // 名称
+        position: Cesium.Cartesian3.fromDegrees(-107.0,40,300000.0), // 位置（经度，纬度，高度（单位：米））
+        box: { // 盒子属性
+            dimensions: new Cesium.Cartesian3(400000.0,300000.0,500000.0), // 尺寸，设置3D笛卡尔几何体（x,y,z；（单位：米））
+            material: Cesium.Color.RED.withAlpha(0.5), // 材质，颜色
+            outline: true, // 显示外边框
+            outlineColor: new Cesium.Color(0,0,0,1) // 外边框颜色，构造Cesium.Color(red,green,blue,alpha)
+        }
+    });
+    // 构造一个只有边框的盒子
+    var outlineOnly = viewer.entities.add({
+        name: "Yellow box outline",
+        position: Cesium.Cartesian3.fromDegrees(-100.0,40.0,300000.0),
+        box: {
+            dimensions: new Cesium.Cartesian3(400000.0,300000.0,500000.0),
+            // fill: false, 无填充（点击无响应）
+            material: new Cesium.Color(0,0,0,0), // 材质：颜色（有填充，点击也无响应响应）
+            outline: true, // 显示外边框
+            outlineColor: new Cesium.Color(0.5,0,0.5,1), // 外边框颜色
+            // outlineWidth: 100 // 外边框的宽度，没有起作用
+        }
+    })
+
+viewer.zoomTo(viewer.entities);
+
+</script>
+</html>

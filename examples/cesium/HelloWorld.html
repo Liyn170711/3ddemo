@@ -1,0 +1,61 @@
+<!-- Cesium起步教程 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hello Cesium World</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../libs/cesium/Cesium.js"> </script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #cesiumer {
+            margin: 100px auto;
+            padding: 0;
+            width: 80%;
+            height: 80%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+    var viewer = new Cesium.Viewer("cesiumer",{
+        animation: false, // 动画控件，控制视图动画的播放速度
+        baseLayerPicker: true, // 图层选择器选择器，选择要显示的地图服务和地形服务
+        fullscreenButton: true, // 全屏显示的按钮
+        vrButton: false, // 
+        geocoder: false, // 查找位置工具，查找到之后会将镜头对准找到的地址，默认使用bing地图
+        homeButton: false, // 视角返回初始位置
+        infoBox: false, // 显示信息
+        sceneModePicker: true, // 视图模式选择器，支持：2D，3D，哥伦布视图（CV）
+        selectionIndicator: false,
+        timeline: false, // 时间线,指示当前时间，并允许用户跳到特定的时间
+        navigationHelpButton: false, // 导航帮助按钮，显示默认的地图控制帮助
+        scene3DOnly: false, // 只显示3D视图
+        fullscreenElement: "cesiumer", // 需要全屏显示的dom元素或ID
+        sceneMode: Cesium.SceneMode.SCENE3D // 初始场景模式
+    });
+    // 三维视图的对象
+    var scene = viewer.scene; // 三维视图的场景
+    var canvas = viewer.canvas; // 三维视图的画布
+    var clock = viewer.clock; // 三维视图的时钟对象
+    var camera = viewer.scene.camera; // 三维视图的相机
+    var entities = viewer.entities; // 三维视图的实体集合
+    // 可以加快时间的运行来模拟出日光照射的效果
+    clock.multiplier = 0.1*60*60; // 加快时钟的运行
+    scene.globe.enableLighting = true; // 阳光照射区域高亮
+
+    
+</script>
+</html>
