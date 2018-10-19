@@ -55,6 +55,19 @@
     // 可以加快时间的运行来模拟出日光照射的效果
     clock.multiplier = 0.1*60*60; // 加快时钟的运行
     scene.globe.enableLighting = true; // 阳光照射区域高亮
+    /*******************************************地图视图边界*************************************************/
+    // 设置视图默认边界
+    var extent = Cesium.Rectangle.fromDegrees(46.176235, 6.120418, 47.176235, 7.120418); // 西、南、东、北
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = extent; // 设置默认视图边界
+    // 获取当前视图边界
+    var scratchRectangle = new Cesium.Rectangle();  // 构造矩形边界对象，（西、南、东、北（单位：弧度））
+    var rect = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid, scratchRectangle); // 获取当前视图边界，
+
+    /*******************************************限制相机高度*************************************************/
+    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 250000;//相机的高度的最小值
+    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 22000000;  //相机高度的最大值
+    viewer.scene.screenSpaceCameraController._minimumZoomRate = 30000; // 设置相机缩小时的速率
+    viewer.scene.screenSpaceCameraController._maximumZoomRate=5906376272000    //设置相机放大时的速率
 
     
 </script>
