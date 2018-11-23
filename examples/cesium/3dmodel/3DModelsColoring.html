@@ -10,6 +10,7 @@
     Cesium.ColorBlendMode.HIGHLIGHT 高光
     Cesium.ColorBlendMode.REPLACE 替换
     Cesium.ColorBlendMode.MIX 混合
+    详情参考 Cesium.ModelGraphics 的 api
  -->
  <!DOCTYPE html>
  <html lang="en">
@@ -164,12 +165,18 @@
         </table>
         <div style="margin-top: 20px;">
             <select id="modelSelect" title="选择3D模型" class="selectpicker show-tick form-control">
-                <option url="../../../SampleData/models/CesiumAir/Cesium_Air.glb" height="5000" selected>Aircraft</option>
-                <option url="../../../SampleData/models/GroundVehicle/GroundVehicle.glb" height="0">Ground Vehicle</option>
-                <option url="../../../SampleData/models/CesiumBalloon/CesiumBalloon.glb" height="1000">Hot Air Balloon</option>
-                <option url="../../../SampleData/models/CesiumMilkTruck/CesiumMilkTruck-kmc.glb" height="0">Milk Truck</option>
-                <option url="../../../SampleData/models/CesiumMan/Cesium_Man.glb" height="0">Skinned Character</option>
-                <option url="../../../SampleData/models/DracoCompressed/CesiumMilkTruck.gltf" height="0">Draco Compressed Model</option>
+                <option url="../../../SampleData/models/CesiumAir/Cesium_Air.glb" height="5000" selected>飞机</option>
+                <option url="../../../SampleData/models/GroundVehicle/GroundVehicle.glb" height="0">卡车</option>
+                <option url="../../../SampleData/models/CesiumBalloon/CesiumBalloon.glb" height="1000">热气球</option>
+                <option url="../../../SampleData/models/CesiumMilkTruck/CesiumMilkTruck-kmc.glb" height="0">牛奶车</option>
+                <option url="../../../SampleData/models/CesiumMan/Cesium_Man.glb" height="0">人</option>
+                <option url="../../../SampleData/models/DracoCompressed/CesiumMilkTruck.gltf" height="0">暗色牛奶车</option>
+                <option url="../../../models/danbinghuang1.gltf" height="0">单兵黄1</option>
+                <option url="../../../models/danbinghuang2.gltf" height="0">单兵黄2</option>
+                <option url="../../../models/danbinglan1.gltf" height="0">单兵1</option>
+                <option url="../../../models/danbinglan2.gltf" height="0">单兵2</option>
+                <option url="../../../models/ligan.gltf" height="0">立杆</option>
+                <option url="../../../models/qiangji.gltf" height="0">枪机</option>
             </select>
             <input type="checkbox" name="Shadows" style="margin-left: 20px;">  <span>Shadows</span>
         </div>
@@ -188,7 +195,6 @@
         silhouetteAlpha : 1.0, // 轮廓颜色不透明度
         silhouetteSize : 2.0 // 轮廓大小
     };
-
 
       /**
       * 页面加载完成处理函数 
@@ -284,6 +290,7 @@
         var option = target.selectedOptions[0];
         var mode = option.getAttribute("value");
         console.log("选择的着色方式：", mode);
+        viewModel.colorBlendMode = mode;
         var colorBlendMode = getColorBlendMode(mode);
         entity.model.colorBlendMode = colorBlendMode;
         if (colorBlendMode === Cesium.ColorBlendMode.MIX){

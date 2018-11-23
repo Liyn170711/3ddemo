@@ -10,26 +10,32 @@
 
 var DrawHelper = (function () {
 
-    // static variables
-    var ellipsoid = Cesium.Ellipsoid.WGS84;
+    // static variables 全局变量
+    var ellipsoid = Cesium.Ellipsoid.WGS84; // 椭球体
 
-    // constructor
+    /**
+     * 构造函数
+     * @param {*} cesiumWidget 3D视图
+     */
     function _(cesiumWidget) {
-        this._scene = cesiumWidget.scene;
-        this._tooltip = createTooltip(cesiumWidget.container);
-        this._surfaces = [];
+        this._scene = cesiumWidget.scene; // 场景
+        this._tooltip = createTooltip(cesiumWidget.container); // 创建提示信息
+        this._surfaces = []; // 
 
-        this.initialiseHandlers();
+        this.initialiseHandlers(); // 初始化监听处理
 
         this.enhancePrimitives();
 
     }
 
+    /**
+     * 初始化监听处理
+     */
     _.prototype.initialiseHandlers = function () {
-        var scene = this._scene;
-        var _self = this;
-        // scene events
-        var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+        var scene = this._scene; // 场景
+        var _self = this; // 绘制工具类
+        var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas); // 屏幕空间事件处理工具
+        // 事件处理方法
         function callPrimitiveCallback(name, position) {
             if (_self._handlersMuted == true) return;
             var pickedObject = scene.pick(position);
@@ -37,14 +43,17 @@ var DrawHelper = (function () {
                 pickedObject.primitive[name](position);
             }
         }
+        // 监听鼠标左键单击
         handler.setInputAction(
             function (movement) {
                 callPrimitiveCallback('leftClick', movement.position);
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        // 监听鼠标左键双击
         handler.setInputAction(
             function (movement) {
                 callPrimitiveCallback('leftDoubleClick', movement.position);
             }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        // 监听鼠标移动
         var mouseOutObject;
         handler.setInputAction(
             function (movement) {
@@ -64,10 +73,12 @@ var DrawHelper = (function () {
                     }
                 }
             }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+        // 监听鼠标抬起
         handler.setInputAction(
             function (movement) {
                 callPrimitiveCallback('leftUp', movement.position);
             }, Cesium.ScreenSpaceEventType.LEFT_UP);
+        // 监听鼠标按下
         handler.setInputAction(
             function (movement) {
                 callPrimitiveCallback('leftDown', movement.position);
@@ -1091,10 +1102,17 @@ var DrawHelper = (function () {
 
     }
 
+    /**
+     * 增强图形基元
+     */
     _.prototype.enhancePrimitives = function () {
 
-        var drawHelper = this;
+        var drawHelper = this; // 绘制工具
 
+        /**
+         * 设置是否可编辑
+         * @returns
+         */
         Cesium.Billboard.prototype.setEditable = function () {
 
             if (this._editable) {
@@ -1107,6 +1125,10 @@ var DrawHelper = (function () {
 
             var _self = this;
 
+            /**
+             * 是否可旋转
+             * @param {*} enable
+             */
             function enableRotation(enable) {
                 drawHelper._scene.screenSpaceCameraController.enableRotate = enable;
             }
@@ -1114,18 +1136,20 @@ var DrawHelper = (function () {
             setListener(billboard, 'leftDown', function (position) {
                 // TODO - start the drag handlers here
                 // create handlers for mouseOut and leftUp for the billboard and a mouseMove
+                // 拖动事件处理
                 function onDrag(position) {
                     billboard.position = position;
                     _self.executeListeners({ name: 'drag', positions: position });
                 }
+                // 拖动完成处理
                 function onDragEnd(position) {
                     handler.destroy();
                     enableRotation(true);
                     _self.executeListeners({ name: 'dragEnd', positions: position });
                 }
 
-                var handler = new Cesium.ScreenSpaceEventHandler(drawHelper._scene.canvas);
-
+                var handler = new Cesium.ScreenSpaceEventHandler(drawHelper._scene.canvas); // 构造屏幕空间事件处理工具
+                // 监听鼠标移动事件
                 handler.setInputAction(function (movement) {
                     var cartesian = drawHelper._scene.camera.pickEllipsoid(movement.endPosition, ellipsoid);
                     if (cartesian) {
@@ -1134,13 +1158,12 @@ var DrawHelper = (function () {
                         onDragEnd(cartesian);
                     }
                 }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-
+                // 监听鼠标左键抬起
                 handler.setInputAction(function (movement) {
                     onDragEnd(drawHelper._scene.camera.pickEllipsoid(movement.position, ellipsoid));
                 }, Cesium.ScreenSpaceEventType.LEFT_UP);
-
+                // 禁用旋转
                 enableRotation(false);
-
             });
 
             enhanceWithListeners(billboard);
@@ -1837,24 +1860,39 @@ var DrawHelper = (function () {
         primitive[type] = callback;
     }
 
+    /**
+     * 增强监听
+     * @param {*} element 监听体元素
+     */
     function enhanceWithListeners(element) {
 
         element._listeners = {};
-
+        
+        /**
+         * 添加事件监听
+         * @param {*} name 事件名称
+         * @param {*} callback  事件回调方法
+         * @returns 事件的所有回调方法
+         */
         element.addListener = function (name, callback) {
             this._listeners[name] = (this._listeners[name] || []);
             this._listeners[name].push(callback);
             return this._listeners[name].length;
         }
 
+        /**
+         * 执行监听
+         * @param {*} event 监听事件
+         * @param {*} defaultCallback 默认回调方法
+         */
         element.executeListeners = function (event, defaultCallback) {
-            if (this._listeners[event.name] && this._listeners[event.name].length > 0) {
+            if (this._listeners[event.name] && this._listeners[event.name].length > 0) { // 存在事件的回调方法时
                 var index = 0;
-                for (; index < this._listeners[event.name].length; index++) {
+                for (; index < this._listeners[event.name].length; index++) { // 遍历事件所有的回调方法，执行回调
                     this._listeners[event.name][index](event);
                 }
-            } else {
-                if (defaultCallback) {
+            } else { // 不存在事件的回调方法时
+                if (defaultCallback) { // 有默认回调方法时，执行默认的回调方法
                     defaultCallback(event);
                 }
             }

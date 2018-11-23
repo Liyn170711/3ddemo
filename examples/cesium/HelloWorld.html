@@ -53,22 +53,41 @@
     var camera = viewer.scene.camera; // 三维视图的相机
     var entities = viewer.entities; // 三维视图的实体集合
     // 可以加快时间的运行来模拟出日光照射的效果
-    clock.multiplier = 0.1*60*60; // 加快时钟的运行
-    scene.globe.enableLighting = true; // 阳光照射区域高亮
+    // clock.multiplier = 0.1*60*60; // 加快时钟的运行
+    // scene.globe.enableLighting = true; // 阳光照射区域高亮
     /*******************************************地图视图边界*************************************************/
     // 设置视图默认边界
-    var extent = Cesium.Rectangle.fromDegrees(46.176235, 6.120418, 47.176235, 7.120418); // 西、南、东、北
-    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = extent; // 设置默认视图边界
+    // var extent = Cesium.Rectangle.fromDegrees(46.176235, 6.120418, 47.176235, 7.120418); // 西、南、东、北
+    // Cesium.Camera.DEFAULT_VIEW_RECTANGLE = extent; // 设置默认视图边界
     // 获取当前视图边界
-    var scratchRectangle = new Cesium.Rectangle();  // 构造矩形边界对象，（西、南、东、北（单位：弧度））
-    var rect = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid, scratchRectangle); // 获取当前视图边界，
+    // var scratchRectangle = new Cesium.Rectangle();  // 构造矩形边界对象，（西、南、东、北（单位：弧度））
+    // var rect = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid, scratchRectangle); // 获取当前视图边界，
 
     /*******************************************限制相机高度*************************************************/
-    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 250000;//相机的高度的最小值
-    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 22000000;  //相机高度的最大值
-    viewer.scene.screenSpaceCameraController._minimumZoomRate = 30000; // 设置相机缩小时的速率
-    viewer.scene.screenSpaceCameraController._maximumZoomRate=5906376272000    //设置相机放大时的速率
-
+    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 500;//相机的高度的最小值
+    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 2000;  //相机高度的最大值
+    // viewer.scene.screenSpaceCameraController._minimumZoomRate = 30000; // 设置相机缩小时的速率
+    // viewer.scene.screenSpaceCameraController._maximumZoomRate=5906376272000    //设置相机放大时的速率
+    camera.flyTo({ // 设置相机位置角度
+        destination: Cesium.Cartesian3.fromDegrees(108.0, 34.0, 1500),
+        duration: 5,
+        orientation: {
+            heading: Cesium.Math.toRadians(0.0),
+            pitch: Cesium.Math.toRadians(-90.0),
+            roll: 0.0
+        }
+    });
+    scene.postRender.addEventListener(this.handleScenePostUpdate)
+    function handleScenePostUpdate(scene, time) {
+      let lot = Cesium.Math.toDegrees(viewer.camera.positionCartographic.longitude)
+      let lat = Cesium.Math.toDegrees(viewer.camera.positionCartographic.latitude)
+      let altitude = viewer.camera.positionCartographic.height // 高度（单位：米）
+      let heading = Cesium.Math.toDegrees(viewer.camera.heading)
+      let pitch = Cesium.Math.toDegrees(viewer.camera.pitch)
+      let roll = Cesium.Math.toDegrees(viewer.camera.roll)
+      console.log('当前相机经度：', lot, '，纬度：', lat, '，高度：', altitude)
+      console.log('当前相机方位信息：heading', heading, '，pitch：', pitch, '，roll：', roll)
+    }
     
 </script>
 </html>
