@@ -1,0 +1,213 @@
+<!-- 
+    PostProcessStage 公共特效处理
+    相关类：
+    viewer.scene.postProcessStages —— Cesium.PostProcessStageCollection
+    Cesium.PostProcessStageLibrary：
+    Cesium.PostProcessStageLibrary.createSilhouetteStage() 轮廓特效
+    Cesium.PostProcessStageLibrary.createBlackAndWhiteStage() 黑白特效
+    Cesium.PostProcessStageLibrary.createBrightnessStage() 光照饱和度特效
+    Cesium.PostProcessStageLibrary.createNightVisionStage() 夜间模式特效
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>3D Models Coloring</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <script src="../../sm/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         .infoPanel {
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        .infoPanel td {
+            vertical-align: middle;
+        }
+        #toolbar {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 400px;
+            height: auto;
+            color: #fff;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border-radius: 4px;
+        }
+        #toolbar input {
+            vertical-align: middle;
+            float: left;
+        }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id="toolbar">
+        <table class="infoPanel">
+            <tbody>
+                <tr>
+                    <td>Silhouette（模型边框）</td>
+                    <td>
+                        <input type="checkbox" checked onchange="changeViewModelStatus(this, 'silhouette')">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Black and White（黑白特效）</td>
+                    <td>
+                        <input type="checkbox" onchange="changeViewModelStatus(this, 'blackAndWhiteShow')">
+                    </td>
+                    <td>
+                        <input id="blackAndWhite_range" type="range" min="0.0" max="10.0" step="0.01" value="5.0" onchange="changeViewModelValue(this, 'blackAndWhiteGradations')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Brightness（光照饱和度）</td>
+                    <td>
+                        <input type="checkbox" onchange="changeViewModelStatus(this, 'brightnessShow')">
+                    </td>
+                    <td>
+                        <input id="brightness_range" type="range" min="0.0" max="1.0" step="0.1" value="0.5" onchange="changeViewModelValue(this, 'brightnessValue')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Night Vision（夜间模式）</td>
+                    <td>
+                        <input type="checkbox" onchange="changeViewModelStatus(this, 'nightVisionShow')">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Model Animations（模型动画）</td>
+                    <td>
+                        <input type="checkbox" checked onchange="changeViewModelStatus(this, 'modelAnimations')">
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+ </body>
+ <script>
+    var viewer = null; // 三维视图
+    var silhouette; // 轮廓处理
+    var blackAndWhite; // 黑白处理
+    var brightness; // 光照饱和度处理
+    var nightVision; // 夜间模式处理
+    var entity; // 模型实体对象
+    // 控制模型视图状态的变量
+    var viewModel = {
+        blackAndWhiteShow: false, // 黑白处理特效是否显示
+        blackAndWhiteGradations: 5.0, // 黑白渐变强度
+        brightnessShow: false, // 光照特效是否显示
+        brightnessValue: 0.5, // 光照强度（光照饱和度）
+        nightVisionShow: false, // 夜间模式特效是否显示
+        silhouette : true, // 是否显示轮廓
+        modelAnimations: true // 模型动画是否显示
+    };
+
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+        //  初始化三维视图
+        viewer = new Cesium.Viewer("cesiumer",{
+            infoBox: false, // 信息框
+            selectionIndicator: false, // 选择指示器
+            shadows: true, // 阴影
+            shouldAnimate: true // 动画效果
+        }); // 视图
+        var stages = viewer.scene.postProcessStages;
+        silhouette = stages.add(Cesium.PostProcessStageLibrary.createSilhouetteStage()); // 添加轮廓处理
+        blackAndWhite = stages.add(Cesium.PostProcessStageLibrary.createBlackAndWhiteStage()); // 添加黑白处理
+        brightness = stages.add(Cesium.PostProcessStageLibrary.createBrightnessStage()); // 添加光照饱和度处理
+        nightVision = stages.add(Cesium.PostProcessStageLibrary.createNightVisionStage()); // 添加夜间模式处理
+        createModel('../../../SampleData/models/CesiumMan/Cesium_Man.glb',0); // 创建模型
+        updatePostProcess(); // 注册事件监听
+     }
+
+     /**
+     * 创建模型
+     * @param url 模型的地址
+     * @param height 模型设置位置高度
+     */
+    function createModel (url,height) {
+        var position = Cesium.Cartesian3.fromDegrees(-123.0744619, 44.0503706, height); // 构造位置世界坐标
+        var heading = Cesium.Math.toRadians(135); // 朝向角度
+        var pitch = 0; // 俯仰角度
+        var roll = 0; // 滚动角度
+        var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll); // 构造朝向、俯仰、滚动角度数据
+        var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr); // 构造视角数据
+        // 添加模型实体
+        entity = viewer.entities.add({ // 向视图中添加实体
+            name : url, // 名称
+            position : position, // 位置
+            orientation : orientation, // 朝向
+            model : { // 模型
+                uri : url // 地址
+            }
+        });
+        viewer.trackedEntity = entity; // 设置实体为相机当前追踪的实体
+    }
+
+    /**
+    * 修改 viewModel 里的值 
+    * @param target 目标 dom 元素
+    * @param pro viewModel 的属性名称
+    */
+    function changeViewModelValue(target, pro) {
+        var value = target.value;
+        viewModel[pro] = value;
+        updatePostProcess(); // 更新场景特效处理
+    }
+
+    /**
+    * 修改 viewModel 里的状态
+    * @param target 目标 dom 元素
+    * @param pro viewModel 的属性名称
+    */
+    function changeViewModelStatus(target, pro) {
+        var checked = target.checked;
+        viewModel[pro] = checked;
+        updatePostProcess(); // 更新场景特效处理
+    }
+
+    /**
+     * 更新场景特效处理
+     */
+     function updatePostProcess() {
+         if (silhouette) { // 轮廓特效
+            silhouette.enabled = Boolean(viewModel.silhouette);
+            silhouette.uniforms.color = Cesium.Color.YELLOW;
+         }
+         if (blackAndWhite) { // 黑白特效
+             blackAndWhite.enabled = Boolean(viewModel.blackAndWhiteShow);
+             blackAndWhite.uniforms.gradations = Number(viewModel.blackAndWhiteGradations);
+         }
+         if (brightness) { // 光照饱和度特效
+             brightness.enabled = Boolean(viewModel.brightnessShow);
+             brightness.uniforms.brightness = Number(viewModel.brightnessValue);
+         }
+         if (nightVision) { // 夜间模式特效
+             nightVision.enabled = Boolean(viewModel.nightVisionShow);
+         }
+         if (entity) { // 模型实体对象
+            entity.model.runAnimations = Boolean(viewModel.modelAnimations);
+         }
+     }
+ </script>
+ </html> 
