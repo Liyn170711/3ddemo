@@ -137,7 +137,7 @@
         brightness = stages.add(Cesium.PostProcessStageLibrary.createBrightnessStage()); // 添加光照饱和度处理
         nightVision = stages.add(Cesium.PostProcessStageLibrary.createNightVisionStage()); // 添加夜间模式处理
         createModel('../../../SampleData/models/CesiumMan/Cesium_Man.glb',0); // 创建模型
-        updatePostProcess(); // 注册事件监听
+        updatePostProcess(); // 更新场景特效处理
      }
 
      /**

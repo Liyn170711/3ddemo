@@ -1,0 +1,192 @@
+<!-- 
+    景深效果后处理
+    相关类：
+    viewer.scene.postProcessStages —— Cesium.PostProcessStageCollection
+    Cesium.PostProcessStageLibrary：
+    Cesium.PostProcessStageLibrary.createDepthOfFieldStage() 景深效应
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Depth of Field</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <script src="../../sm/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         .infoPanel {
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        .infoPanel td {
+            vertical-align: middle;
+        }
+        #toolbar {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 400px;
+            height: auto;
+            color: #fff;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border-radius: 4px;
+        }
+        #toolbar input {
+            vertical-align: middle;
+            float: left;
+        }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id="toolbar">
+        <table class="infoPanel">
+            <tbody>
+                <tr>
+                    <td>Depth Of Field（景深效果）</td>
+                    <td>
+                        <input type="checkbox" checked onchange="changeCtrlStatus(this, 'show')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Focal Distance（焦距）</td>
+                    <td>
+                        <input id="blackAndWhite_range" type="range" min="0.0" max="500.0" step="1" value="87" onchange="changeCtrlValue(this,'focalDistance')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Delta</td>
+                    <td>
+                        <input id="blackAndWhite_range" type="range" min="0.0" max="2.0" step="0.01" value="1" onchange="changeCtrlValue(this,'delta')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sigma</td>
+                    <td>
+                        <input id="blackAndWhite_range" type="range" min="0.0" max="5.0" step="0.01" value="3.78" onchange="changeCtrlValue(this,'sigma')">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Step Size</td>
+                    <td>
+                        <input id="blackAndWhite_range" type="range" min="0.0" max="7.0" step="0.01" value="2.46" onchange="changeCtrlValue(this,'stepSize')">
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+ </body>
+ <script>
+    var viewer = null; // 三维视图
+    var numberOfBalloons = 13; // 加载热气球模型的数量
+    var lonIncrement = 0.00025; // 经度增长量
+    var initialLon = -122.99875; // 初始经度
+    var lat = 44.0503706; // 纬度
+    var height = 100.0; // 高度
+    var url = '../../../SampleData/models/CesiumBalloon/CesiumBalloon.glb'; // 模型地址
+    var depthOfField; // 景深后处理效果舞台
+    var viewModel = { // 控制参数
+        show : true, // 是否显示效果
+        focalDistance : 87, // 焦距
+        delta : 1, // delta参数
+        sigma : 3.78, // sigma参数
+        stepSize : 2.46 // 步长
+    };
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer() {
+        //  初始化三维视图
+        viewer = new Cesium.Viewer("cesiumer",{
+            infoBox: false, // 信息框
+            selectionIndicator: false, // 选择指示器
+            shadows: true, // 阴影
+            shouldAnimate: true // 动画效果
+        }); // 视图
+        addModels(); // 添加实体模型到视图中
+        depthOfField = viewer.scene.postProcessStages.add(Cesium.PostProcessStageLibrary.createDepthOfFieldStage()); // 场景处理特效中添加景深后处理舞台
+        updatePostProcess(); // 更新场景特效处理
+        // 设置相机位置
+        var target = Cesium.Cartesian3.fromDegrees(initialLon + lonIncrement, lat, height + 7.5);
+        var offset = new Cesium.Cartesian3(-37.048378684557974, -24.852967044804245, 4.352023653686047);
+        viewer.scene.camera.lookAt(target, offset);
+     }
+
+     /**
+      * 添加模型实体到视图中
+      */
+     function addModels() {
+        for (var i = 0; i < numberOfBalloons; ++i) {
+            var lon = initialLon + i * lonIncrement;
+            createModel(url, lon, lat, height);
+        }
+     }
+
+     /**
+      * 创建模型实体
+      * @param url 模型资源地址
+      * @param x 经度
+      * @param y 纬度
+      * @param height 高度
+      */
+     function createModel(url, x, y, height) {
+        var position = Cesium.Cartesian3.fromDegrees(x, y, height);
+        viewer.entities.add({
+            name : url,
+            position : position,
+            model : {
+                uri : url
+            }
+        });
+    }
+
+    /**
+     * 更新场景特效处理
+     */
+    function updatePostProcess() {
+        depthOfField.enabled = Boolean(viewModel.show); // 是否显示
+        depthOfField.uniforms.focalDistance = Number(viewModel.focalDistance); // 焦距
+        depthOfField.uniforms.delta = Number(viewModel.delta); // delta 参数
+        depthOfField.uniforms.sigma = Number(viewModel.sigma); // sigma 参数
+        depthOfField.uniforms.stepSize = Number(viewModel.stepSize); // 步长
+    }
+
+    /**
+     * 修改控制状态
+     * @param target 目标dom
+     * @param pro 对应 vieModel 的属性值
+     */
+    function changeCtrlStatus(target, pro) {
+        var  checked = target.checked;
+        viewModel[pro] = checked;
+        updatePostProcess(); // 更新场景特效处理
+    }
+
+    /**
+     * 修改控制状态
+     * @param target 目标dom
+     * @param pro 对应 vieModel 的属性值
+     */
+    function changeCtrlValue(target, pro) {
+        var  value = target.value;
+        viewModel[pro] = value;
+        updatePostProcess(); // 更新场景特效处理
+    }
+ </script>
+ </html> 
