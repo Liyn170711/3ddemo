@@ -1,0 +1,383 @@
+<!-- 
+    阴影
+    相关类：
+    viewer.shadowMap —— Cesium.ShadowMap // 场景中的阴影映射数据
+    viewer.shadowMap.softShadows //是否启用百分比更紧密过滤以产生更柔和的阴影。
+    viewer.shadows // 控制视图是否显示阴影，决定阴影是否由太阳投射
+    ------实体阴影的设置方式------
+    var visual = entity.model || entity.box || entity.ellipsoid;
+    visual.shadows = shadowMode;
+    ------阴影状态常量---用于给实体或地形图层设置阴影的状态------
+    Cesium.ShadowMode.ENABLED // 阴影状态常量：启用阴影效果
+    Cesium.ShadowMode.DISABLED // 阴影状态常量：禁用阴影效果
+    Cesium.ShadowMode.CAST_ONLY  // 阴影状态常量：只投射
+    Cesium.ShadowMode.RECEIVE_ONLY  // 阴影状态常量：只接收
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Sky Atmosphere</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="../../sm/css/bootstrap.min.css" rel="stylesheet">
+     <link href="../../sm/css/pretty.css" rel="stylesheet">
+     <script src="../../sm/js/jquery.min.js"></script>
+     <script src="../../sm/js/bootstrap.min.js"></script>
+     <script src="../../sm/js/bootstrap-select.min.js"></script>
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         .infoPanel {
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        .infoPanel td {
+            vertical-align: middle;
+        }
+        #toolbar {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 400px;
+            height: auto;
+            color: #fff;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 4px;
+            border-radius: 4px;
+        }
+        #toolbar input {
+            vertical-align: middle;
+            float: left;
+        }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id="toolbar">
+        <table class="infoPanel">
+            <tbody>
+                <tr>
+                    <td>Location</td>
+                    <td>
+                        <select id="modelSelect" title="选择位置" class="selectpicker show-tick form-control" onchange="changePosition(this)">
+                            <option selected>Exton</option>
+                            <option>HalfDome</option>
+                            <option>Everest</option>
+                            <option>PinnaclePA</option>
+                            <option>SenecaRocks</option>
+                            <option>Space</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Entity</td>
+                    <td>
+                        <select id="modelSelect" title="选择实体" class="selectpicker show-tick form-control" onchange="changeEntity(this)">
+                            <option selected>cesiumAir</option>
+                            <option>groundVehicle</option>
+                            <option>woodTower</option>
+                            <option>simpleCity</option>
+                            <option>boxEntity</option>
+                            <option>checkerEntity</option>
+                            <option>sphereEntity</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Shadows</td>
+                    <td><input type="checkbox" checked onchange="changeShadowsStatus(this)"></td>
+                </tr>
+                <tr>
+                    <td>Entity Shadows</td>
+                    <td><input type="checkbox" checked onchange="changeEntityShadowsStatus(this)"></td>
+                </tr>
+                <tr>
+                    <td>Terrain Shadows</td>
+                    <td><input type="checkbox" checked onchange="changeTerrainShadowsStatus(this)"></td>
+                </tr>
+                <tr>
+                    <td>Soft Shadows</td>
+                    <td><input type="checkbox" onchange="changeSoftShadowsStatus(this)"></td>
+                </tr>
+                <tr>
+                    <td>Size</td>
+                    <td>
+                        <select id="modelSelect" title="选择阴影大小" class="selectpicker show-tick form-control" onchange="changeShadowsSize(this)">
+                            <option selected>2048</option>
+                            <option>1024</option>
+                            <option>512</option>
+                            <option>256</option>
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+ </body>
+ <script>
+    var viewer = null; // 三维视图
+    var locations = { // 位置信息
+        Exton : {
+            longitude : -1.31968,
+            latitude : 0.698874,
+            height : 74.14210186070714,
+            date : 2457522.154792
+        },
+        HalfDome : {
+            longitude : -2.086267733294987,
+            latitude : 0.6587491773830219,
+            height : 2640.716312584986,
+            date : 2457507.247512
+        },
+        Everest : {
+            longitude : 1.517132688,
+            latitude : 0.4884844964,
+            height : 8773.17824498951,
+            date : 2457507.620845
+        },
+        PinnaclePA : {
+            longitude : -1.3324415110874286,
+            latitude : 0.6954224325279967,
+            height : 179.14276256241743,
+            date : 2457523.041620
+        },
+        SenecaRocks : {
+            longitude : -1.3851775172879768,
+            latitude : 0.6778211831093554,
+            height : 682.5893300695776,
+            date : 2457522.097512
+        },
+        Space : {
+            longitude : -1.31968,
+            latitude : 0.698874,
+            height : 2000000.0,
+            date : 2457522.154792
+        }
+    };
+    var entities; // 视图中的实体数组
+    var cesiumAir;
+    var groundVehicle;
+    var woodTower;
+    var simpleCity;
+    var boxEntity;
+    var checkerEntity;
+    var sphereEntity;
+    /**
+    * 页面加载完成处理函数 
+    */
+    function loadViewer() {
+        //  初始化三维视图
+        viewer = new Cesium.Viewer("cesiumer",{
+            infoBox: false,
+            selectionIndicator: false,
+            shadows: true,
+            terrainShadows: Cesium.ShadowMode.ENABLED,
+            shouldAnimate: true,
+            terrainProvider: Cesium.createWorldTerrain()
+        }); // 视图
+        addModels(); // 添加实体数据
+        entities = viewer.entities.values; // 视图猎德实体数据数组
+        var location = locations.Exton;
+        if (location) {
+            setLocation(locations.Exton); // 设置位置
+        }
+        if (cesiumAir) {
+            setEntity(cesiumAir); // 设置实体
+        }
+    }
+
+    /**
+     * 改变阴影状态
+     * @param target 目标dom
+     **/
+    function changeShadowsStatus(target) {
+        var checked = target.checked;
+        viewer.shadows = checked;
+    }
+
+    /**
+     * 改变实体阴影状态
+     * @param target 目标dom
+     **/
+     function changeEntityShadowsStatus(target) {
+        var checked = target.checked;
+        var entityShadows = checked ? Cesium.ShadowMode.ENABLED : Cesium.ShadowMode.DISABLED;
+        for (i = 0; i < entities.length; ++i) {
+            var entity = entities[i];
+            var visual = entity.model || entity.box || entity.ellipsoid;
+            visual.shadows = entityShadows;
+        }
+    }
+
+    /**
+     * 改变地形阴影状态
+     * @param target 目标dom
+     **/
+     function changeTerrainShadowsStatus(target) {
+        var checked = target.checked;
+        viewer.terrainShadows = checked ? Cesium.ShadowMode.ENABLED : Cesium.ShadowMode.DISABLED;
+    }
+
+    /**
+     * 改变温和阴影状态
+     * @param target 目标dom
+     **/
+     function changeSoftShadowsStatus(target) {
+        var checked = target.checked;
+        viewer.shadowMap.softShadows = checked;
+    }
+
+    /**
+     * 改变阴影的大小
+     * @param target 目标dom
+     **/
+     function changeShadowsSize(target) {
+        var size = parseInt(target.value);
+        viewer.shadowMap.size = size;
+    }
+
+    /**
+     * 改变位置
+     * @param target 目标dom
+     **/
+    function changePosition(target) {
+        var locName = target.value;
+        var location = locations[locName];
+        if (location) {
+            setLocation(location); // 设置位置信息
+        }
+    }
+
+    /**
+     * 改变实体
+     * @param target 目标dom
+     **/
+    function changeEntity(target) {
+        var entityName = target.value;
+        var entity = window[entityName];
+        if (entity) {
+            setEntity(entity); // 设置实体
+        }
+    }
+
+    /**
+     * 设置实体
+     * @param entity 实体数据
+     **/
+    function setEntity(entity) {
+        for (i = 0; i < entities.length; ++i) {
+            entities[i].show = false;
+        }
+        entity.show = true;
+        viewer.trackedEntity = entity;
+    }
+
+    /**
+     * 设置实体数据的位置信息
+     **/
+    function setLocation(location) {
+        var longitude = location.longitude;
+        var latitude = location.latitude;
+        var height = location.height;
+        for (var i = 0; i < entities.length; ++i) {
+            var entity = entities[i];
+            entity.position = Cesium.Cartesian3.fromRadians(longitude, latitude, height + entity.height);
+        }
+        viewer.clock.currentTime = new Cesium.JulianDate(location.date);
+        viewer.clock.multiplier = 1.0;
+    }
+    
+    /**
+     * 添加实体数据
+     **/
+    function addModels() {
+        cesiumAir = viewer.entities.add({
+            name : 'Cesium Air',
+            height : 20.0,
+            model : {
+                uri : '../../../SampleData/models/CesiumAir/Cesium_Air.glb'
+            }
+        });
+        groundVehicle = viewer.entities.add({
+            name : 'Ground Vehicle',
+            height : 0.0,
+            model : {
+                uri : '../../../SampleData/models/GroundVehicle/GroundVehicle.glb'
+            }
+        });
+        cesiumMan = viewer.entities.add({
+            name : 'Cesium Man',
+            height : 0.0,
+            model : {
+                uri : '../../../SampleData/models/CesiumMan/Cesium_Man.glb'
+            }
+        });
+        woodTower = viewer.entities.add({
+            name : 'Wood Tower',
+            height : 0.0,
+            model : {
+                uri : '../../../SampleData/models/WoodTower/Wood_Tower.gltf'
+            }
+        });
+        simpleCity = viewer.entities.add({
+            name : 'Simple City',
+            height : 0.0,
+            model : {
+                uri : '../../../SampleData/models/ShadowTester/Shadow_Tester_4.gltf'
+            }
+        });
+        boxEntity = viewer.entities.add({
+            name : 'Box',
+            height : 10.0,
+            box : {
+                dimensions : new Cesium.Cartesian3(10.0, 10.0, 10.0),
+                material : Cesium.Color.RED,
+                shadows : Cesium.ShadowMode.ENABLED
+            }
+        });
+        var checkerMaterial = new Cesium.CheckerboardMaterialProperty({
+            evenColor : Cesium.Color.RED.withAlpha(0.5),
+            oddColor : Cesium.Color.RED.withAlpha(0.0),
+            repeat : new Cesium.Cartesian2(5.0, 10.0)
+        });
+
+        checkerEntity = viewer.entities.add({
+            name : 'Checkered Box',
+            height : 10.0,
+            box : {
+                dimensions : new Cesium.Cartesian3(10.0, 10.0, 10.0),
+                material : checkerMaterial,
+                outline : true,
+                outlineColor : Cesium.Color.RED,
+                shadows : Cesium.ShadowMode.ENABLED
+            }
+        });
+
+        sphereEntity = viewer.entities.add({
+            name : 'Sphere',
+            height : 20.0,
+            ellipsoid : {
+                radii : new Cesium.Cartesian3(15.0, 15.0, 15.0),
+                material : Cesium.Color.BLUE.withAlpha(0.5),
+                slicePartitions : 24,
+                stackPartitions : 36,
+                shadows : Cesium.ShadowMode.ENABLED
+            }
+        });
+    }
+
+    
+ </script>
+ </html> 
