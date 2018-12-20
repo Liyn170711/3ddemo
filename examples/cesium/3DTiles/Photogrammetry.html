@@ -1,0 +1,51 @@
+<!-- 
+    3D Tiles 摄影测量模型
+    注：使用Cesium.IonResource.fromAssetId(6074)时，使用本地的Cesium.js加载不到3D Tiles
+    使用https://cesiumjs.org/Cesium/Build/CesiumUnminified/Cesium.js官网上的类库可以加载到
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Photogrammetry</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="https://cesiumjs.org/Cesium/Build/CesiumUnminified/Cesium.js"> </script>
+    <style>
+        html, body, #cesiumer {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #cesiumer {
+            margin: 100px auto;
+            padding: 0;
+            width: 80%;
+            height: 80%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumer"></div>
+</body>
+<script>
+var viewer = new Cesium.Viewer('cesiumer', {
+    terrainProvider: Cesium.createWorldTerrain() // 世界地形图层
+});
+Cesium.IonResource.fromAssetId(6074).then(function (resourse){
+    console.log(resourse)
+    var tileset = new Cesium.Cesium3DTileset({
+        url: resourse
+        // url: Cesium.IonResource.fromAssetId(6074)
+    }); // 3D Tiles 数据集
+    viewer.scene.primitives.add(tileset); // 将3D Tiles 数据集添加到场景基元中
+    viewer.zoomTo(tileset); // 视图缩放至3D Tiles 数据集
+});
+    
+</script>
+</html>
