@@ -178,6 +178,7 @@ function loggingMessage(message) {
  * @param {*} positions Cartesian3坐标数组
  */
 function testTravelPath (positions) {
+    trackArr = []
     let seconds = 30 * (positions.length-2); // 飞行的总时间，秒数
     timeSettings(seconds); // 时间设置
     let property = new Cesium.SampledPositionProperty(); // 构造位置属性对象
@@ -185,7 +186,7 @@ function testTravelPath (positions) {
         let time = Cesium.JulianDate.addSeconds(startDate, index*30, new Cesium.JulianDate()); // 时间
         let position = positions[index]; // 位置
         property.addSample(time, position); // 添加位置属性对象中
-        viewer.entities.add({
+        let pointEntity = viewer.entities.add({
             position : position,
             point : {
                 pixelSize : 5,
@@ -194,6 +195,7 @@ function testTravelPath (positions) {
                 outlineWidth : 2
             }
         })
+        trackArr.push(pointEntity);
     }
     //Actually create the entity
     flyingEntity = viewer.entities.add({
@@ -222,8 +224,9 @@ function testTravelPath (positions) {
             width : 10
         }
     });
-    viewTopDown(); // 视角设置为上帝视角
-    // viewFlyingEntity(); // 视角设置为追踪飞行实体
+    trackArr.push(flyingEntity);
+    // viewTopDown(); // 视角设置为上帝视角
+    viewFlyingEntity(); // 视角设置为追踪飞行实体
     // viewSide(); // 视角设置为边界视角
 }
 
@@ -237,8 +240,9 @@ function timeSettings (seconds) {
     viewer.clock.startTime = startDate.clone();
     viewer.clock.stopTime = stopDate.clone();
     viewer.clock.currentTime = startDate.clone();
-    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; //Loop at the end
-    viewer.clock.multiplier = 10; // 设置时间变化量
+    // viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; //Loop at the end
+    viewer.clock.clockRange = Cesium.ClockRange.CLAMPED; //
+    viewer.clock.multiplier = 5; // 设置时间变化量
     //Set timeline to simulation bounds
     // viewer.timeline.zoomTo(startDate, stopDate);
 }

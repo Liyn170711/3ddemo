@@ -190,7 +190,8 @@
             camera.lookUp(y * lookFactor);
         }
         // Change movement speed based on the distance of the camera to the surface of the ellipsoid.
-        var cameraHeight = ellipsoid.cartesianToCartographic(camera.position).height;
+        // var cameraHeight = ellipsoid.cartesianToCartographic(camera.position).height;
+        var cameraHeight = camera.positionCartographic.height;
         var moveRate = cameraHeight / 100.0;
         if (flags.moveForward) {
             camera.moveForward(moveRate);

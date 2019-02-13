@@ -1,0 +1,148 @@
+<!-- 
+    室内3D测试
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Hover Entity</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="../css/pretty.css" rel="stylesheet">
+     <script src="../js/jquery.min.js"></script>
+     <link rel="stylesheet" href="../../../libs/sm/Cesium/Widgets/widgets.css">
+     <script type="text/javascript" src="../../../libs/sm/Cesium/Cesium.js"> </script>
+     <script src="../js/supermap/SuperMap.Include.js"></script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         #toolbar{
+             background: rgba(42, 42, 42, 0.4);
+             padding: 8px;
+             position: absolute;
+             left: 5px;
+             top: 5px;
+             display: block;
+             z-index: 9999;
+         }
+         input[type=text]{
+             TEXT-ALIGN: center;
+             z-index: 3;
+             height: 18px;
+             background: none;
+             border: none;
+             padding: 5px 0;
+             -webkit-transition: 0.3s;
+             transition: 0.3s;
+             border-bottom: 2px solid #b8b2b2;
+             color: aliceblue;
+         }
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="toolbar">
+         <label style="font: 400 13.3333px Arial;">SQL</label><input type="text" id="SQL" value="PARENTNAME='1F'">
+         <button type="button" id="search" class="button black" onclick="doSqlQuery()">查询</button>
+     </div>
+     <div id="cesiumer"></div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+ </body>
+ <script>
+     var mapServiceURL = 'http://192.168.22.51:8090/iserver/services/3D-shinei/rest/realspace'
+     var dataServiceURL = 'http://192.168.22.51:8090/iserver/services/data-shinei/rest/data'
+     var dataSourceName = 'shinei'
+     var dataSetame = 'shinei'
+     var layerName = 'shinei@shinei'
+     var viewer
+     var scene
+     var scenelayer
+ 
+      /**
+      * 页面加载完成处理函数 
+      */
+     function loadViewer () {
+         viewer = new Cesium.Viewer("cesiumer");
+         scene = viewer.scene
+         promise = scene.open(mapServiceURL)
+         Cesium.when(promise, layers => {
+             scenelayer = scene.layers.find(layerName)
+             viewer.zoomTo(scenelayer)
+         })
+         $("#loadingbar").remove();
+     }
+ 
+      /**
+      * 执行sql查询
+      */
+     function doSqlQuery(){
+         let SQL = $("#SQL").val()
+         var getFeatureParam, getFeatureBySQLService, getFeatureBySQLParams;
+         getFeatureParam = new SuperMap.REST.FilterParameter({
+             attributeFilter: SQL
+         });
+         getFeatureBySQLParams = new SuperMap.REST.GetFeaturesBySQLParameters({
+             queryParameter: getFeatureParam,
+             toIndex : -1,
+             datasetNames: ['shinei:shinei']
+         });
+         getFeatureBySQLService = new SuperMap.REST.GetFeaturesBySQLService(dataServiceURL, {
+             eventListeners: {
+                 "processCompleted": onQueryComplete, 
+                 "processFailed": processFailed
+             }
+         });
+         getFeatureBySQLService.processAsync(getFeatureBySQLParams);
+     }
+ 
+     /**
+      * 查询完成回调
+      */
+     function onQueryComplete(queryEventArgs){
+         var features = queryEventArgs.originResult.features;
+         var featureIds = [] 
+         for(var i = 0;i < features.length;i++ ){
+             var value = features[i].fieldValues["0"];
+             var feature = features[i];
+             featureIds.push(value)
+             console.log('查询到的要素 ',i, ' ：', feature)
+         }
+         console.log('查询到的要素标识数组：', featureIds)
+         scenelayer.setObjsVisible(featureIds, false)
+     }
+ 
+     /**
+      * 查询失败回调
+      */
+     function processFailed(queryEventArgs){
+         alert('查询失败！');
+     }
+ 
+ 
+ </script>
+ </html>

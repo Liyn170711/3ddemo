@@ -1,0 +1,190 @@
+<!-- 
+    鼠标悬浮三维要素Entity
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <title>Hover Entity</title>
+     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /> 
+     <link href="../css/pretty.css" rel="stylesheet">
+     <script src="../js/jquery.min.js"></script>
+     <link rel="stylesheet" href="../../../libs/sm/Cesium/Widgets/widgets.css">
+     <script type="text/javascript" src="../../../libs/sm/Cesium/Cesium.js"> </script>
+     <script src="../js/supermap/SuperMap.Include.js"></script>
+     <style>
+         html, body, #cesiumer {
+             margin: 0;
+             padding: 0;
+             width: 100%;
+             height: 100%;
+             background: #000;
+             overflow: hidden;
+         }
+         #headCon {
+          width: 100px;
+          height: 100px;
+          top: 50px;
+          left: 50px;
+          background: rgba(153, 153, 153, 0.3);
+          -moz-border-radius: 50px;
+          -webkit-border-radius: 50px;
+          border-radius: 50px;
+          position: absolute;
+          z-index: 998;
+          overflow: hidden;
+          text-align: center;
+          display: none;
+        }
+        #headCon img{
+          height: 100px;
+          border-radius:50px
+        }
+        
+     </style>
+ </head>
+ <body onload="loadViewer()">
+     <div id="cesiumer"></div>
+     <div id="headCon"><img src="../../../images/head.jpg"></div>
+     <div id='loadingbar' class="spinner">
+         <div class="spinner-container container1">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container2">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+         <div class="spinner-container container3">
+             <div class="circle1"></div>
+             <div class="circle2"></div>
+             <div class="circle3"></div>
+             <div class="circle4"></div>
+         </div>
+     </div>
+ </body>
+ <script>
+    var mapServiceURL = 'http://192.168.22.51:8090/iserver/services/3D-zcsh190104/rest/realspace'
+    var layerName = 'louyu@zcsh190104'
+    var viewer
+    var scene
+    var scenelayer
+    var headConElement = null
+
+    /**
+    * 页面加载完成处理函数 
+    */
+    function loadViewer () {
+      headConElement = document.getElementById('headCon')
+      viewer = new Cesium.Viewer("cesiumer", {infoBox: false});
+      scene = viewer.scene
+      promise = scene.open(mapServiceURL)
+      createModel() // 创建模型
+      regListeners() // 注册事件监听
+      $("#loadingbar").remove();
+    }
+
+     /**
+     * 创建模型
+     */
+     function createModel () {
+        var position = Cesium.Cartesian3.fromDegrees(116.27449350069284, 40.17215006103708) // 构造位置世界坐标
+        var heading = Cesium.Math.toRadians(135); // 朝向角度
+        var pitch = 0; // 俯仰角度
+        var roll = 0; // 滚动角度
+        var hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll); // 构造朝向、俯仰、滚动角度数据
+        var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr); // 构造视角数据
+        // 添加模型实体
+        var entity = viewer.entities.add({ // 向视图中添加实体
+            name : 'Single', // 名称
+            position : position, // 位置
+            orientation : orientation, // 朝向
+            model : { // 模型
+                uri : '../../../models/danbinglan.gltf' // 地址
+            }
+        });
+        viewer.zoomTo(entity)// 设置实体为相机当前追踪的实体
+    }
+
+    /**
+     * 注册事件监听
+     */
+    function regListeners () {
+      // 监听视图场景请求重新渲染事件，（可用于实时监听地图移动）
+      // scene.postRender.addEventListener(handleScenePostUpdate)
+      let eventHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas) // 构造屏幕事件处理
+      // 监听鼠标单击事件
+      eventHandler.setInputAction(handleLeftClick, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+      // 监听鼠标移动事件
+      eventHandler.setInputAction(handleMouseMove,Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+    }
+
+    /*
+     * 处理鼠标移动事件
+     */
+     function handleMouseMove (movement) {
+       console.log('处理鼠标移动事件,', movement)
+       let hoverPrimitive = viewer.scene.pick(movement.endPosition)
+       let hoverEntity = Cesium.defined(hoverPrimitive) ? hoverPrimitive.id : undefined
+       if (hoverEntity) {
+         console.log('悬浮空间要素空间要素：', hoverEntity)
+         let car3 = hoverEntity.position._value // 计算点击位置的世界坐标系
+         let car2 = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, car3)
+         let carto = Cesium.Cartographic.fromCartesian(car3)
+         let lot = Cesium.Math.toDegrees(carto.longitude) // 经度
+         let lat = Cesium.Math.toDegrees(carto.latitude) // 纬度
+         let altitude = carto.height // 高度（单位：米）
+         let newAltitude = lat + 80
+         let newCar3 = Cesium.Cartesian3.fromDegrees(lot, lat, newAltitude)
+         let newCar2 = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, newCar3)
+         console.log('悬浮空间要素的经纬度位置：', lot,  lat, altitude)
+         console.log('头像的经纬度位置：', lot,  lat, newAltitude)
+         console.log('悬浮空间要素的位置：', car3.x,  car3.y, car3.z)
+         console.log('头像的位置：', newCar3.x,  newCar3.y, newCar3.z)
+         console.log('悬浮空间要素的屏幕位置：', car2.x, car2.y)
+         console.log('头像的屏幕位置：', newCar2.x, newCar2.y)
+         headConElement.style.display = 'block'
+         let x = newCar2.x - 100
+         let y = newCar2.y
+         headConElement.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)'
+       } else {
+         headConElement.style.display = 'none'
+       }
+    }
+
+    /*
+     * 处理单击事件
+     */
+     function handleLeftClick (movement) {
+       console.log('处理单击事件,', movement)
+       var car2 = new Cesium.Cartesian2(movement.x, movement.y)
+       let car3 = viewer.camera.pickEllipsoid(car2) // 计算点击位置的世界坐标系
+       let carto = Cesium.Cartographic.fromCartesian(car3)
+       let lot = Cesium.Math.toDegrees(carto.longitude) // 经度
+       let lat = Cesium.Math.toDegrees(carto.latitude) // 纬度
+       let altitude = carto.height // 高度（单位：米）
+       console.log('当前点击的位置：', lot, '，纬度：', lat, '，高度：', altitude)
+    }
+
+    /*
+     * 处理视图场景请求重新渲染
+     */
+    function handleScenePostUpdate (scene, time) {
+      let lot = Cesium.Math.toDegrees(viewer.camera.positionCartographic.longitude)
+      let lat = Cesium.Math.toDegrees(viewer.camera.positionCartographic.latitude)
+      let altitude = viewer.camera.positionCartographic.height // 高度（单位：米）
+      let heading = Cesium.Math.toDegrees(viewer.camera.heading)
+      let pitch = Cesium.Math.toDegrees(viewer.camera.pitch)
+      let roll = Cesium.Math.toDegrees(viewer.camera.roll)
+      console.log('当前相机经度：', lot, '，纬度：', lat, '，高度：', altitude)
+      console.log('当前相机方位信息：heading', heading, '，pitch：', pitch, '，roll：', roll)
+    }
+ 
+ </script>
+ </html>
