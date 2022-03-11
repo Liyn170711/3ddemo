@@ -30,6 +30,8 @@
     <div id="cesiumer"></div>
 </body>
 <script>
+    //  添加地图cesium自带地图访问的token
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjOTJiZDIwOC0yNzVhLTQ5ZjktOGNmZS1jMDgwMzUwY2M0ZjAiLCJpZCI6NjMyMDQsImlhdCI6MTYyNzk1NDcyN30.ARf86-Le41cPG0tMEVSyzFVuU-Soc0-vlhkWU_EAByc'
     var viewer = new Cesium.Viewer("cesiumer",{
         animation: false, // 动画控件，控制视图动画的播放速度
         baseLayerPicker: true, // 图层选择器选择器，选择要显示的地图服务和地形服务
@@ -46,6 +48,14 @@
         fullscreenElement: "cesiumer", // 需要全屏显示的dom元素或ID
         sceneMode: Cesium.SceneMode.SCENE3D // 初始场景模式
     });
+    viewer._cesiumWidget._creditContainer.style.display = 'none' // 隐藏版权显示
+    /************************ 修改viewer的部分默认场景样式设置 ************************/
+    viewer.scene.skyBox.show = false //隐藏天空盒子
+    viewer.scene.fog.enabled  = false //去掉雾霾^_^
+    viewer.scene.globe.baseColor = Cesium.Color.BLACK
+    viewer.scene.globe.depthTestAgainstTerrain = false //设置物体之间相交时的不可见属性
+    viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0)
+
     // 三维视图的对象
     var scene = viewer.scene; // 三维视图的场景
     var canvas = viewer.canvas; // 三维视图的画布
@@ -64,8 +74,8 @@
     // var rect = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid, scratchRectangle); // 获取当前视图边界，
 
     /*******************************************限制相机高度*************************************************/
-    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 500;//相机的高度的最小值
-    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 2000;  //相机高度的最大值
+    // viewer.scene.screenSpaceCameraController.minimumZoomDistance = 500;//相机的高度的最小值
+    // viewer.scene.screenSpaceCameraController.maximumZoomDistance = 2000;  //相机高度的最大值
     // viewer.scene.screenSpaceCameraController._minimumZoomRate = 30000; // 设置相机缩小时的速率
     // viewer.scene.screenSpaceCameraController._maximumZoomRate=5906376272000    //设置相机放大时的速率
     camera.flyTo({ // 设置相机位置角度
@@ -85,8 +95,8 @@
       let heading = Cesium.Math.toDegrees(viewer.camera.heading)
       let pitch = Cesium.Math.toDegrees(viewer.camera.pitch)
       let roll = Cesium.Math.toDegrees(viewer.camera.roll)
-      console.log('当前相机经度：', lot, '，纬度：', lat, '，高度：', altitude)
-      console.log('当前相机方位信息：heading', heading, '，pitch：', pitch, '，roll：', roll)
+    //   console.log('当前相机经度：', lot, '，纬度：', lat, '，高度：', altitude)
+    //   console.log('当前相机方位信息：heading', heading, '，pitch：', pitch, '，roll：', roll)
     }
     
 </script>

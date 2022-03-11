@@ -83,6 +83,8 @@
     </div>
  </body>
  <script>
+    //  添加地图cesium自带地图访问的token
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjOTJiZDIwOC0yNzVhLTQ5ZjktOGNmZS1jMDgwMzUwY2M0ZjAiLCJpZCI6NjMyMDQsImlhdCI6MTYyNzk1NDcyN30.ARf86-Le41cPG0tMEVSyzFVuU-Soc0-vlhkWU_EAByc'
       /**
       * 页面加载完成处理函数 
       */
@@ -184,7 +186,8 @@
      }
 
     /**
-     * Fly to rectangle
+     * Fly to rectangle 
+     * flyTo Rectangle 与 setView Rectangle 的区别，flyTo可以附加动画飞行效果，setView无
      */
      function flyToRectangle (viewer, camera) {
          var rectangle = Cesium.Rectangle.fromDegrees(-90.0, 38.0, -87.0, 40.0);

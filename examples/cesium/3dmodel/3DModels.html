@@ -20,8 +20,8 @@
      <script src="../../sm/js/jquery.min.js"></script>
      <script src="../../sm/js/bootstrap.min.js"></script>
      <script src="../../sm/js/bootstrap-select.min.js"></script>
-    <link rel="stylesheet" href="../../../libs/cesium/Widgets/widgets.css">
-    <script type="text/javascript" src="../../../libs/cesium/Cesium.js"> </script>
+     <link rel="stylesheet" href="../../../libs/cesium-1.85/Build/Cesium/Widgets/widgets.css">
+     <script type="text/javascript" src="../../../libs/cesium-1.85/Build/Cesium/Cesium.js"></script>
      <style>
          html, body, #cesiumer {
              margin: 0;
@@ -63,10 +63,18 @@
             <option url="../../../SampleData/models/CesiumMilkTruck/CesiumMilkTruck-kmc.glb" height="0">Milk Truck</option>
             <option url="../../../SampleData/models/CesiumMan/Cesium_Man.glb" height="0">Skinned Character</option>
             <option url="../../../SampleData/models/DracoCompressed/CesiumMilkTruck.gltf" height="0">Draco Compressed Model</option>
+            <option url="../../../models/qiangji.gltf" height="0">qiangji</option>
+            <option url="../../../SampleData/models/hill/leishenhillgltf_0.glb" height="0">huoshen</option>
+            <option url="../../../SampleData/models/test/park1/park1.gltf" height="0">park1</option>
+            <option url="../../../SampleData/models/test/building/building1.gltf" height="0">building1</option>
+            <option url="../../../SampleData/models/test/building/building2.gltf" height="0">building2</option>
+            <option url="../../../SampleData/models/test/qiche.gltf" height="0">qiche</option>
         </select>
     </div>
  </body>
  <script>
+    //  添加地图cesium自带地图访问的token
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjOTJiZDIwOC0yNzVhLTQ5ZjktOGNmZS1jMDgwMzUwY2M0ZjAiLCJpZCI6NjMyMDQsImlhdCI6MTYyNzk1NDcyN30.ARf86-Le41cPG0tMEVSyzFVuU-Soc0-vlhkWU_EAByc'
     var viewer = null; // 三维视图
 
       /**
@@ -117,7 +125,8 @@
                 maximumScale : 20000 // 最大缩放比例
             }
         });
-        viewer.trackedEntity = entity; // 设置实体为相机当前追踪的实体
+        // viewer.trackedEntity = entity; // 设置实体为相机当前追踪的实体
+        viewer.zoomTo(entity)
     }
  </script>
  </html> 
